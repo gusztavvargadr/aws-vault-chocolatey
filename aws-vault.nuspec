@@ -4,18 +4,18 @@
   <metadata>
     <id>aws-vault</id>
     <version>4.4.1</version>
-    <packageSourceUrl>https://github.com/gusztavvargadr/aws-vault-chocolatey</packageSourceUrl>
+    <packageSourceUrl>https://github.com/gusztavvargadr/aws-vault-chocolatey/</packageSourceUrl>
     <owners>Gusztav Varga</owners>
     <title>AWS Vault</title>
     <authors>99designs</authors>
-    <projectUrl>https://github.com/99designs/aws-vault</projectUrl>
-    <iconUrl>https://i.pinimg.com/236x/0b/dd/b9/0bddb9bb520cc69ec3b6ea51f30263be.jpg</iconUrl>
+    <projectUrl>https://99designs.com.au/tech-blog/blog/2015/10/26/aws-vault/</projectUrl>
+    <iconUrl>https://99designs.com/og-image.png</iconUrl>
     <copyright>2015 99designs</copyright>
     <licenseUrl>https://github.com/99designs/aws-vault/blob/master/LICENSE</licenseUrl>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
-    <projectSourceUrl>https://github.com/99designs/aws-vault</projectSourceUrl>
+    <projectSourceUrl>https://github.com/99designs/aws-vault/</projectSourceUrl>
     <docsUrl>https://github.com/99designs/aws-vault/blob/master/README.md</docsUrl>
-    <bugTrackerUrl>https://github.com/99designs/aws-vault/issues</bugTrackerUrl>
+    <bugTrackerUrl>https://github.com/99designs/aws-vault/issues/</bugTrackerUrl>
     <tags>aws-vault 99designs</tags>
     <summary>A vault for securely storing and accessing AWS credentials in development environments</summary>
     <description>
@@ -23,7 +23,7 @@
 
       Check out the [announcement blog post](https://99designs.com.au/tech-blog/blog/2015/10/26/aws-vault/) for more details.
     </description>
-    <releaseNotes>https://github.com/99designs/aws-vault/releases/tag/v4.4.1</releaseNotes>
+    <releaseNotes>https://github.com/99designs/aws-vault/releases/tag/v4.4.1/</releaseNotes>
   </metadata>
   <files>
     <file src="tools\**" target="tools" />
