@@ -5,9 +5,6 @@ trigger:
 
 pr: none
 
-pool:
-  vmImage: 
-
 stages:
 - stage: ci
   displayName: ci
