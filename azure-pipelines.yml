@@ -13,7 +13,7 @@ stages:
   - job: build
     displayName: Build
     pool:
-      vmImage: windows-2019
+      vmImage: win1803
 
     steps:
     - script: |
