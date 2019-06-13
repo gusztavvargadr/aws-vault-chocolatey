@@ -1,8 +1,9 @@
-version: '3'
+version: '3.5'
 
 services:
   gitversion:
     image: gittools/gitversion-dotnetcore:windows-4.0.1
+    isolation: hyperv
     volumes:
       - .:C:/data
     command:
