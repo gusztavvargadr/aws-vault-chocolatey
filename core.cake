@@ -1,16 +1,21 @@
-#addin "nuget:?package=Cake.Docker&version=0.10.0"
 #addin "nuget:?package=Cake.SemVer&version=3.0.0"
 #addin "nuget:?package=semver&version=2.0.4"
+#addin "nuget:?package=Cake.FileHelpers&version=3.2.0"
 
 var target = Argument("target", "Default");
 var configuration = Argument("configuration", "Release");
-var version = Argument("build-version", string.Empty);
-Semver.SemVersion semanticVersion;
+
+var sourceVersion = Argument("source-version", string.Empty);
+var buildVersion = Argument("build-version", string.Empty);
+var appVersion = Argument("app-version", string.Empty);
+var packageVersion = Argument("package-version", string.Empty);
+
+Semver.SemVersion sourceSemVer;
 
 Task("Version")
   .Does(context => {
     try {
-      if (!string.IsNullOrEmpty(version)) {
+      if (!string.IsNullOrEmpty(sourceVersion)) {
         return;
       }
 
@@ -26,26 +31,24 @@ Task("Version")
           throw new Exception($"Error executing GitVersion '{process.GetExitCode()}'.");
         }
 
-        version = string.Join(Environment.NewLine, process.GetStandardOutput());
+        sourceVersion = string.Join(Environment.NewLine, process.GetStandardOutput());
       }
     } finally {
-      Information($"Version: '{version}'.");
+      sourceSemVer = ParseSemVer(sourceVersion);
 
-      semanticVersion = ParseSemVer(version);
+      if (string.IsNullOrEmpty(buildVersion)) {
+        buildVersion = $"{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
+      }
+      if (string.IsNullOrEmpty(appVersion)) {
+        appVersion = new Semver.SemVersion(sourceSemVer.Major, sourceSemVer.Minor, sourceSemVer.Patch).ToString();
+      }
+      if (string.IsNullOrEmpty(packageVersion)) {
+        packageVersion = appVersion;
+      }
+
+      Information($"Source: '{sourceVersion}'.");
+      Information($"Build: '{buildVersion}'.");
+      Information($"App: '{appVersion}'.");
+      Information($"Package: '{packageVersion}'.");
     }
-  });
-
-Task("Restore")
-  .IsDependentOn("Version")
-  .Does(() => {
-  });
-
-Task("Clean")
-  .IsDependentOn("Version")
-  .Does(() => {
-    var settings = new DockerComposeDownSettings {
-      Rmi = "all"
-    };
-
-    DockerComposeDown(settings);
   });

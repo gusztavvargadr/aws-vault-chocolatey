@@ -3,7 +3,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
   <metadata>
     <id>aws-vault</id>
-    <version>4.5.1</version>
+    <version>{version}</version>
     <packageSourceUrl>https://github.com/gusztavvargadr/aws-vault-chocolatey/</packageSourceUrl>
     <owners>Gusztav Varga</owners>
     <title>AWS Vault</title>
@@ -11,7 +11,7 @@
     <projectUrl>https://99designs.com.au/tech-blog/blog/2015/10/26/aws-vault/</projectUrl>
     <iconUrl>https://99designs.com/og-image.png</iconUrl>
     <copyright>2015 99designs</copyright>
-    <licenseUrl>https://github.com/99designs/aws-vault/blob/master/LICENSE</licenseUrl>
+    <licenseUrl>{licenseUrl}</licenseUrl>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <projectSourceUrl>https://github.com/99designs/aws-vault/</projectSourceUrl>
     <docsUrl>https://github.com/99designs/aws-vault/blob/master/README.md</docsUrl>
@@ -23,7 +23,7 @@
 
       Check out the [announcement blog post](https://99designs.com.au/tech-blog/blog/2015/10/26/aws-vault/) for more details.
     </description>
-    <releaseNotes>https://github.com/99designs/aws-vault/releases/tag/v4.5.1/</releaseNotes>
+    <releaseNotes>{releaseNotes}</releaseNotes>
   </metadata>
   <files>
     <file src="tools\**" target="tools" />

@@ -2,4 +2,5 @@
 vagrant.override.yml
 
 /tools
-/work
+/build
+/artifacts

@@ -7,18 +7,16 @@ machines:
     box: <%= ENV['VAGRANT_BOX_DOCKER_WINDOWS'] || 'gusztavvargadr/docker-windows' %>
     providers:
       virtualbox:
-        memory: 1024
-        cpus: 1
+        memory: 2048
+        cpus: 2
       hyperv:
-        memory: 1024
-        cpus: 1
+        memory: 2048
+        cpus: 2
     provisioners:
-      shell-init-dotnet:
+      shell-init-dotnet-sdk:
         inline: |
           choco install dotnetcore-sdk --version 2.2.0 --yes --no-progress
-
+      shell-init-dotnet-tools:
+        inline: |
           dotnet tool install Cake.Tool --global --version 0.33.0
           dotnet tool install GitVersion.Tool --global --version 4.0.1-beta1-65
-      shell-init-docker:
-        inline: |
-          choco install docker-compose --yes --no-progress
