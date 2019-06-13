@@ -6,12 +6,23 @@ trigger:
 pr: none
 
 pool:
-  vmImage: windows-2019
+  vmImage: 
 
-steps:
-- script: |
-    env
-    ls
-    dotnet --version
-    docker version
-  displayName: Diagnostics
+stages:
+- stage: ci
+  displayName: ci
+
+  jobs:
+  - job: build
+    displayName: Build
+    pool:
+      vmImage: windows-2019
+
+    steps:
+    - script: |
+        dotnet tool install Cake.Tool --global --version 0.33.0
+      displayName: Init - .NET - Install Cake
+
+    - script: |
+        dotnet cake build.cake --target=publish
+      displayName: Build - Publish

@@ -1,0 +1,11 @@
+version: '3'
+
+services:
+  gitversion:
+    image: gittools/gitversion-dotnetcore:windows-4.0.1
+    volumes:
+      - .:C:/data
+    command:
+      - C:/data
+      - /showvariable
+      - SemVer
