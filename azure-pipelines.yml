@@ -17,11 +17,24 @@ stages:
 
     steps:
     - script: |
-        docker-compose version
-        docker-compose up gitversion
-        docker-compose logs
-      displayName: Diagnostics
+        dotnet tool install Cake.Tool --global --version 0.33.0
+        dotnet tool install GitVersion.Tool --global --version 4.0.1-beta1-65
+      displayName: Init - .NET
 
     - script: |
-        dotnet tool install Cake.Tool --global --version 0.33.0
-      displayName: Init - .NET - Install Cake
+        dotnet cake build.cake --target=publish
+      displayName: Build - Publish
+
+    - task: ArchiveFiles@2
+      displayName: Artifacts - Archive
+      inputs:
+        rootFolderOrFile: $(Build.SourcesDirectory)
+        includeRootFolder: false
+        archiveType: zip
+        archiveFile: '$(Build.ArtifactStagingDirectory)/source.zip'
+
+    - task: PublishPipelineArtifact@0
+      displayName: Artifacts - Publish
+      inputs:
+        targetPath: '$(Build.ArtifactStagingDirectory)'
+        artifactName: ci-build

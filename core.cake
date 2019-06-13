@@ -14,16 +14,22 @@ Task("Version")
         return;
       }
 
-      var settings = new DockerComposeUpSettings {
-      };
-      var service = "gitversion";
+      using(var process = StartAndReturnProcess(
+        "dotnet",
+        new ProcessSettings {
+          Arguments = $"gitversion {context.Environment.WorkingDirectory} /showvariable SemVer",
+          RedirectStandardOutput = true
+        }
+      )) {
+        process.WaitForExit();
+        if (process.GetExitCode() != 0) {
+          throw new Exception($"Error executing GitVersion '{process.GetExitCode()}'.");
+        }
 
-      DockerComposeUp(settings, service);
-
-      var output = DockerComposeLogs(context, new DockerComposeLogsSettings { NoColor = true }, service);
-      version = output.Split(Environment.NewLine).Last().Split('|').Last().Trim().Replace("-rc-origin-", "-rc-");
+        version = string.Join(Environment.NewLine, process.GetStandardOutput());
+      }
     } finally {
-      Information(version);
+      Information($"Version: '{version}'.");
 
       semanticVersion = ParseSemVer(version);
     }
@@ -32,11 +38,6 @@ Task("Version")
 Task("Restore")
   .IsDependentOn("Version")
   .Does(() => {
-    var settings = new DockerComposePullSettings {
-      IgnorePullFailures = true
-    };
-
-    DockerComposePull(settings);
   });
 
 Task("Clean")
@@ -48,16 +49,3 @@ Task("Clean")
 
     DockerComposeDown(settings);
   });
-
-private string DockerComposeLogs(ICakeContext context, DockerComposeLogsSettings settings, string service) {
-  var runner = new GenericDockerComposeRunner<DockerComposeLogsSettings>(
-    context.FileSystem,
-    context.Environment,
-    context.ProcessRunner,
-    context.Tools
-  );
-
-  var output = runner.RunWithResult<string>("logs", settings, (processOutput) => processOutput.ToArray(), service);
-
-  return string.Join(Environment.NewLine, output);
-}

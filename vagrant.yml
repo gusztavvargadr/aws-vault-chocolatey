@@ -13,12 +13,12 @@ machines:
         memory: 1024
         cpus: 1
     provisioners:
-      shell-init-dotnet-sdk:
+      shell-init-dotnet:
         inline: |
           choco install dotnetcore-sdk --version 2.2.0 --yes --no-progress
-      shell-init-dotnet-tool-cake:
-        inline: |
+
           dotnet tool install Cake.Tool --global --version 0.33.0
-      shell-init-docker-compose:
+          dotnet tool install GitVersion.Tool --global --version 4.0.1-beta1-65
+      shell-init-docker:
         inline: |
           choco install docker-compose --yes --no-progress
