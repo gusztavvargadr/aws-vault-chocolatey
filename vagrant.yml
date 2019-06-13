@@ -19,3 +19,6 @@ machines:
       shell-init-dotnet-tool-cake:
         inline: |
           dotnet tool install Cake.Tool --global --version 0.33.0
+      shell-init-docker-compose:
+        inline: |
+          choco install docker-compose --yes --no-progress
