@@ -22,16 +22,8 @@ stages:
       displayName: Init - .NET - Tools
 
     - script: |
-        dotnet cake build.cake --target=publish
+        dotnet cake build.cake --target=publish --artifacts-directory=$(Build.ArtifactStagingDirectory)
       displayName: Build - Publish
-
-    - task: ArchiveFiles@2
-      displayName: Artifacts - Archive
-      inputs:
-        rootFolderOrFile: $(Build.SourcesDirectory)
-        includeRootFolder: false
-        archiveType: zip
-        archiveFile: '$(Build.ArtifactStagingDirectory)/source.zip'
 
     - task: PublishPipelineArtifact@0
       displayName: Artifacts - Publish

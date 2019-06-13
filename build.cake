@@ -2,7 +2,7 @@
 
 var sourceDirectory = Directory("./src");
 var buildDirectory = Directory("./build");
-var artifactsDirectory = Directory("./artifacts");
+var artifactsDirectory = Directory(Argument("artifacts-directory", "./artifacts"));
 
 var appSourceRepository = "https://github.com/99designs/aws-vault";
 Func<string> appDownloadUrl = () => $"{appSourceRepository}/releases/download/v{appVersion}/aws-vault-windows-386.exe";
@@ -14,15 +14,7 @@ Task("Restore")
     EnsureDirectoryExists(buildDirectory);
 
     CopyDirectory(sourceDirectory, buildDirectory);
-    EnsureDirectoryExists(appDownloadFile.Path.GetDirectory());
     DownloadFile(appDownloadUrl(), appDownloadFile);
-
-    EnsureDirectoryExists(artifactsDirectory);
-  });
-
-Task("Build")
-  .IsDependentOn("Restore")
-  .Does(() => {
     foreach (var file in GetFiles(buildDirectory.Path + "/**/*template*")) {
       var template = FileReadText(file);
       var rendered = TransformText(template, "{", "}")
@@ -39,6 +31,12 @@ Task("Build")
       DeleteFile(file);
     }
 
+    EnsureDirectoryExists(artifactsDirectory);
+  });
+
+Task("Build")
+  .IsDependentOn("Restore")
+  .Does(() => {
     var settings = new ChocolateyPackSettings {
       WorkingDirectory = buildDirectory
     };
@@ -60,23 +58,18 @@ Task("Package")
 Task("Publish")
   .IsDependentOn("Package")
   .Does(() => {
-    // copy to artifacts
+    CopyFiles(buildDirectory.Path + "/**/*.nupkg", artifactsDirectory);
   });
 
 Task("Clean")
   .IsDependentOn("Version")
   .Does(() => {
-    var settings = new DeleteDirectorySettings {
-    };
-
     CleanDirectory(artifactsDirectory);
-    DeleteDirectory(artifactsDirectory, settings);
 
     CleanDirectory(buildDirectory);
-    DeleteDirectory(buildDirectory, settings);
   });
 
 Task("Default")
-  .IsDependentOn("Package");
+  .IsDependentOn("Publish");
 
 RunTarget(target);
