@@ -1,1 +1,6 @@
-*.nupkg
+.vagrant
+vagrant.override.yml
+
+/tools
+/build
+/artifacts
