@@ -2,7 +2,7 @@
 <!-- Do not remove this test for UTF-8: if “Ω” doesn’t appear as greek uppercase omega letter enclosed in quotation marks, you should use an editor that supports UTF-8, not this one. -->
 <package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
   <metadata>
-    <id>aws-vault</id>
+    <id>{id}</id>
     <version>{version}</version>
     <packageSourceUrl>https://github.com/gusztavvargadr/aws-vault-chocolatey/</packageSourceUrl>
     <owners>Gusztav Varga</owners>
@@ -13,9 +13,9 @@
     <copyright>2015 99designs</copyright>
     <licenseUrl>{licenseUrl}</licenseUrl>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
-    <projectSourceUrl>https://github.com/99designs/aws-vault/</projectSourceUrl>
-    <docsUrl>https://github.com/99designs/aws-vault/blob/master/README.md</docsUrl>
-    <bugTrackerUrl>https://github.com/99designs/aws-vault/issues/</bugTrackerUrl>
+    <projectSourceUrl>{projectSourceUrl}/</projectSourceUrl>
+    <docsUrl>{projectSourceUrl}/blob/master/README.md</docsUrl>
+    <bugTrackerUrl>{projectSourceUrl}/issues/</bugTrackerUrl>
     <tags>aws-vault 99designs</tags>
     <summary>A vault for securely storing and accessing AWS credentials in development environments</summary>
     <description>

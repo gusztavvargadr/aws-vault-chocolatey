@@ -28,7 +28,7 @@ Task("Version")
       )) {
         process.WaitForExit();
         if (process.GetExitCode() != 0) {
-          throw new Exception($"Error executing GitVersion '{process.GetExitCode()}'.");
+          throw new Exception($"Error executing 'GitVersion': '{process.GetExitCode()}'.");
         }
 
         sourceVersion = string.Join(Environment.NewLine, process.GetStandardOutput());

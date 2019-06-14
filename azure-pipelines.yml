@@ -30,3 +30,7 @@ stages:
       inputs:
         targetPath: '$(Build.ArtifactStagingDirectory)'
         artifactName: ci-build
+
+    - script: |
+        dotnet cake build.cake --target=clean --artifacts-directory=$(Build.ArtifactStagingDirectory)
+      displayName: Clean - Build
