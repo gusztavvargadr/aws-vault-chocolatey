@@ -42,6 +42,7 @@ Task("Build")
   .IsDependentOn("Restore")
   .Does(() => {
     var settings = new ChocolateyPackSettings {
+      RequireLicenseAcceptance = true,
       WorkingDirectory = buildDirectory
     };
 
