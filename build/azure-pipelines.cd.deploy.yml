@@ -1,0 +1,17 @@
+steps:
+- template: azure-pipelines.core.init-dotnet-tools.yml
+
+- task: DownloadPipelineArtifact@0
+  displayName: Restore - Artifacts
+  inputs:
+    artifactName: ci-build
+    targetPath: '$(Build.ArtifactStagingDirectory)'
+
+- script: |
+    dotnet cake deploy.cake --target=publish  --app-version=$(app-version) --package-version=$(package-version) --artifacts-directory=$(Build.ArtifactStagingDirectory)
+  displayName: Build - Publish
+
+- script: |
+    dotnet cake deploy.cake --target=clean  --app-version=$(app-version) --package-version=$(package-version) --artifacts-directory=$(Build.ArtifactStagingDirectory)
+  displayName: Clean - Build
+  condition: always()

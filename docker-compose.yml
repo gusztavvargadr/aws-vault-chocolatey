@@ -1,0 +1,9 @@
+version: '3'
+
+services:
+  registry:
+    build:
+      context: build
+      dockerfile: chocolatey-server.Dockerfile
+    ports:
+    - "5000:80"

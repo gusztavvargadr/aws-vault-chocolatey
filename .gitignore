@@ -1,6 +1,8 @@
 .vagrant
 vagrant.override.yml
 
+docker-compose.override.yml
+
 /tools
-/build
+/work
 /artifacts

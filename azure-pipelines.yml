@@ -15,6 +15,22 @@ stages:
     displayName: Build
     pool:
       vmImage: windows-2019
+    variables:
+    - group: versions
 
     steps:
-    - template: azure-pipelines.ci.build.yml
+    - template: build/azure-pipelines.ci.build.yml
+
+- stage: cd
+  displayName: CD
+
+  jobs:
+  - job: deployLocalhost
+    displayName: Deploy - Localhost
+    pool:
+      vmImage: windows-2019
+    variables:
+    - group: versions
+
+    steps:
+    - template: build/azure-pipelines.cd.deploy.yml

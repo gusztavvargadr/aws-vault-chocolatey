@@ -1,23 +1,20 @@
 #load "core.cake"
 
-var sourceDirectory = Directory("./src");
-var buildDirectory = Directory("./build");
-var artifactsDirectory = Directory(Argument("artifacts-directory", "./artifacts"));
-
 var appSourceRepository = "https://github.com/99designs/aws-vault";
 Func<string> appDownloadUrl = () => $"{appSourceRepository}/releases/download/v{appVersion}/aws-vault-windows-386.exe";
-var appDownloadFile = buildDirectory + File("tools/aws-vault.exe");
+var appDownloadFile = workDirectory + File("tools/aws-vault.exe");
 
 var packageId = "aws-vault";
 
-Task("Restore")
-  .IsDependentOn("Version")
-  .Does(() => {
-    EnsureDirectoryExists(buildDirectory);
+Restored = () => {
+  CopyDirectory(sourceDirectory, workDirectory);
+  DownloadFile(appDownloadUrl(), appDownloadFile);
+};
 
-    CopyDirectory(sourceDirectory, buildDirectory);
-    DownloadFile(appDownloadUrl(), appDownloadFile);
-    foreach (var file in GetFiles(buildDirectory.Path + "/**/*template*")) {
+Task("Build")
+  .IsDependentOn("Restore")
+  .Does(() => {
+    foreach (var file in GetFiles(workDirectory.Path + "/**/*template*")) {
       var template = FileReadText(file);
       var rendered = TransformText(template, "{", "}")
         .WithToken("id", packageId)
@@ -35,18 +32,12 @@ Task("Restore")
       DeleteFile(file);
     }
 
-    EnsureDirectoryExists(artifactsDirectory);
-  });
-
-Task("Build")
-  .IsDependentOn("Restore")
-  .Does(() => {
     var settings = new ChocolateyPackSettings {
       RequireLicenseAcceptance = true,
-      WorkingDirectory = buildDirectory
+      WorkingDirectory = workDirectory
     };
 
-    ChocolateyPack(GetFiles(buildDirectory.Path + "/**/*.nuspec"), settings);
+    ChocolateyPack(GetFiles(workDirectory.Path + "/**/*.nuspec"), settings);
   });
 
 Task("Test")
@@ -56,7 +47,7 @@ Task("Test")
       Debug = true,
       Verbose = true,
       Source = ".",
-      WorkingDirectory = buildDirectory
+      WorkingDirectory = workDirectory
     };
 
     ChocolateyInstall(packageId, settings);
@@ -89,17 +80,11 @@ Task("Package")
 Task("Publish")
   .IsDependentOn("Package")
   .Does(() => {
-    CopyFiles(buildDirectory.Path + "/**/*.nupkg", artifactsDirectory);
+    CopyFiles(workDirectory.Path + "/**/*.nupkg", artifactsDirectory);
   });
 
-Task("Clean")
-  .IsDependentOn("Version")
-  .Does(() => {
-    ChocolateyUninstall(packageId);
-
-    CleanDirectory(artifactsDirectory);
-
-    CleanDirectory(buildDirectory);
-  });
+Cleaned = () => {
+  ChocolateyUninstall(packageId);
+};
 
 RunTarget(target);

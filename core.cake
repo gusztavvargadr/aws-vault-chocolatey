@@ -12,6 +12,13 @@ var buildVersion = Argument("build-version", string.Empty);
 var appVersion = Argument("app-version", string.Empty);
 var packageVersion = Argument("package-version", string.Empty);
 
+var sourceDirectory = Directory(Argument("source-directory", "./src"));
+var workDirectory = Directory(Argument("work-directory", "./work"));
+var artifactsDirectory = Directory(Argument("artifacts-directory", "./artifacts"));
+
+Action Versioned = () => {
+};
+
 Task("Version")
   .Does(context => {
     try {
@@ -50,5 +57,34 @@ Task("Version")
       Information($"Build: '{buildVersion}'.");
       Information($"App: '{appVersion}'.");
       Information($"Package: '{packageVersion}'.");
+
+      Versioned();
     }
+  });
+
+Action Restored = () => {};
+
+Task("Restore")
+  .IsDependentOn("Version")
+  .Does(() => {
+    EnsureDirectoryExists(workDirectory);
+    EnsureDirectoryExists(artifactsDirectory);
+
+    Restored();
+  });
+
+Action Cleaned = () => {};
+
+Task("Clean")
+  .IsDependentOn("Version")
+  .Does(() => {
+    var downSettings = new DockerComposeDownSettings {
+      Rmi = "all"
+    };
+    DockerComposeDown(downSettings);
+
+    CleanDirectory(artifactsDirectory);
+    CleanDirectory(workDirectory);
+
+    Cleaned();
   });

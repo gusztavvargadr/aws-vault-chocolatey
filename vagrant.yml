@@ -3,7 +3,7 @@ service: chocolatey
 component: aws-vault
 
 machines:
-  workstation:
+  build:
     box: <%= ENV['VAGRANT_BOX_DOCKER_WINDOWS'] || 'gusztavvargadr/docker-windows' %>
     providers:
       virtualbox:
@@ -13,6 +13,9 @@ machines:
         memory: 2048
         cpus: 2
     provisioners:
+      shell-init-docker-compose:
+        inline: |
+          choco install docker-compose --version 1.24.0 --yes --no-progress
       shell-init-dotnet-sdk:
         inline: |
           choco install dotnetcore-sdk --version 2.2.0 --yes --no-progress
