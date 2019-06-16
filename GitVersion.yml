@@ -2,7 +2,6 @@ mode: ContinuousDeployment
 branches:
   master:
     tag: rc
-    increment: minor
   feature:
     tag: rc-{BranchName}
     increment: minor

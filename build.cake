@@ -102,7 +102,4 @@ Task("Clean")
     CleanDirectory(buildDirectory);
   });
 
-Task("Default")
-  .IsDependentOn("Publish");
-
 RunTarget(target);

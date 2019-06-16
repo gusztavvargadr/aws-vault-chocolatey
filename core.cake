@@ -1,16 +1,16 @@
+#addin "nuget:?package=Cake.Docker&version=0.10.0"
 #addin "nuget:?package=Cake.SemVer&version=3.0.0"
 #addin "nuget:?package=semver&version=2.0.4"
 #addin "nuget:?package=Cake.FileHelpers&version=3.2.0"
 
-var target = Argument("target", "Default");
+var target = Argument("target", "Publish");
 var configuration = Argument("configuration", "Release");
 
 var sourceVersion = Argument("source-version", string.Empty);
+Semver.SemVersion sourceSemVer;
 var buildVersion = Argument("build-version", string.Empty);
 var appVersion = Argument("app-version", string.Empty);
 var packageVersion = Argument("package-version", string.Empty);
-
-Semver.SemVersion sourceSemVer;
 
 Task("Version")
   .Does(context => {
