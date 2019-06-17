@@ -8,7 +8,7 @@ pr: none
 
 stages:
 - stage: ci
-  displayName: CI
+  displayName: CI2
 
   jobs:
   - job: build

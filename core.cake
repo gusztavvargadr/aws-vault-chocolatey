@@ -16,8 +16,9 @@ var sourceDirectory = Directory(Argument("source-directory", "./src"));
 var workDirectory = Directory(Argument("work-directory", "./work"));
 var artifactsDirectory = Directory(Argument("artifacts-directory", "./artifacts"));
 
-Action Versioned = () => {
-};
+var packageId = "aws-vault";
+
+Action Versioned = () => {};
 
 Task("Version")
   .Does(context => {

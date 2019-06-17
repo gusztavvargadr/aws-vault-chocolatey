@@ -4,6 +4,6 @@ services:
   registry:
     build:
       context: build
-      dockerfile: chocolatey-server.Dockerfile
+      dockerfile: registry.Dockerfile
     ports:
     - "5000:80"

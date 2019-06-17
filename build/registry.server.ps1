@@ -35,7 +35,7 @@ if ($null -eq (Get-Command -Name 'choco.exe' -ErrorAction SilentlyContinue)) {
 }
 
 # Install Chocolatey.Server
-choco upgrade chocolatey.server -y
+choco upgrade chocolatey.server --yes --no-progress
 
 # Step by step instructions here https://chocolatey.org/docs/how-to-set-up-chocolatey-server#setup-normally
 # Import the right modules
