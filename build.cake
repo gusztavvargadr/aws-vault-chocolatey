@@ -1,68 +1,53 @@
-#load "core.cake"
+#load "./build/core.cake"
 
-var sourceDirectory = Directory("./src");
-var buildDirectory = Directory("./build");
-var artifactsDirectory = Directory(Argument("artifacts-directory", "./artifacts"));
+Restored = () => {
+  CopyDirectory(sourceDirectory, workDirectory);
+  DownloadFile(appDownloadUrl(), packageFile);
 
-var appSourceRepository = "https://github.com/99designs/aws-vault";
-Func<string> appDownloadUrl = () => $"{appSourceRepository}/releases/download/v{appVersion}/aws-vault-windows-386.exe";
-var appDownloadFile = buildDirectory + File("tools/aws-vault.exe");
+  foreach (var file in GetFiles(workDirectory.Path + "/**/*template*")) {
+    var template = FileReadText(file);
 
-var packageId = "aws-vault";
+    var rendered = TransformText(template, "{", "}")
+      .WithToken("id", packageName)
+      .WithToken("version", packageVersion)
+      .WithToken("projectSourceUrl", $"{appSourceRepository}")
+      .WithToken("licenseUrl", $"{appSourceRepository}/blob/master/LICENSE")
+      .WithToken("releaseNotes", $"{appSourceRepository}/releases/tag/v{appVersion}/")
+      .WithToken("downloadUrl", appDownloadUrl())
+      .WithToken("downloadHashMD5", CalculateFileHash(packageFile, HashAlgorithm.MD5).ToHex().ToUpper())
+      .WithToken("downloadHashSHA256", CalculateFileHash(packageFile, HashAlgorithm.SHA256).ToHex().ToUpper())
+      .WithToken("downloadHashSHA512", CalculateFileHash(packageFile, HashAlgorithm.SHA512).ToHex().ToUpper())
+      .ToString();
+    FileWriteText(File(file.FullPath.Replace(".template.", ".")), rendered);
 
-Task("Restore")
-  .IsDependentOn("Version")
-  .Does(() => {
-    EnsureDirectoryExists(buildDirectory);
-
-    CopyDirectory(sourceDirectory, buildDirectory);
-    DownloadFile(appDownloadUrl(), appDownloadFile);
-    foreach (var file in GetFiles(buildDirectory.Path + "/**/*template*")) {
-      var template = FileReadText(file);
-      var rendered = TransformText(template, "{", "}")
-        .WithToken("id", packageId)
-        .WithToken("version", packageVersion)
-        .WithToken("projectSourceUrl", $"{appSourceRepository}")
-        .WithToken("licenseUrl", $"{appSourceRepository}/blob/master/LICENSE")
-        .WithToken("releaseNotes", $"{appSourceRepository}/releases/tag/v{appVersion}/")
-        .WithToken("downloadUrl", appDownloadUrl())
-        .WithToken("downloadHashMD5", CalculateFileHash(appDownloadFile, HashAlgorithm.MD5).ToHex().ToUpper())
-        .WithToken("downloadHashSHA256", CalculateFileHash(appDownloadFile, HashAlgorithm.SHA256).ToHex().ToUpper())
-        .WithToken("downloadHashSHA512", CalculateFileHash(appDownloadFile, HashAlgorithm.SHA512).ToHex().ToUpper())
-        .ToString();
-      FileWriteText(File(file.FullPath.Replace(".template.", ".")), rendered);
-
-      DeleteFile(file);
-    }
-
-    EnsureDirectoryExists(artifactsDirectory);
-  });
+    DeleteFile(file);
+  }
+};
 
 Task("Build")
   .IsDependentOn("Restore")
   .Does(() => {
-    var settings = new ChocolateyPackSettings {
+    var packSettings = new ChocolateyPackSettings {
       RequireLicenseAcceptance = true,
-      WorkingDirectory = buildDirectory
+      WorkingDirectory = workDirectory
     };
-
-    ChocolateyPack(GetFiles(buildDirectory.Path + "/**/*.nuspec"), settings);
+    ChocolateyPack(GetFiles(workDirectory.Path + "/**/*.nuspec"), packSettings);
   });
 
 Task("Test")
   .IsDependentOn("Build")
   .Does(() => {
-    var settings = new ChocolateyInstallSettings {
+    var installSettings = new ChocolateyInstallSettings {
       Debug = true,
       Verbose = true,
       Source = ".",
-      WorkingDirectory = buildDirectory
+      WorkingDirectory = workDirectory,
+      Prerelease = !string.IsNullOrEmpty(sourceSemVer.Prerelease)
     };
-
-    ChocolateyInstall(packageId, settings);
+    ChocolateyInstall(packageName, installSettings);
 
     using(var process = StartAndReturnProcess(
-      packageId,
+      packageFilename,
       new ProcessSettings {
         Arguments = "--version",
         RedirectStandardOutput = true
@@ -70,15 +55,20 @@ Task("Test")
     )) {
       process.WaitForExit();
       if (process.GetExitCode() != 0) {
-        throw new Exception($"Error executing '{packageId}': '{process.GetExitCode()}'.");
+        throw new Exception($"Error executing '{packageFilename}': '{process.GetExitCode()}'.");
       }
 
       var actualVersion = string.Join(Environment.NewLine, process.GetStandardOutput());
+      Information($"Actual version: '{actualVersion}'.");
       var expectedVersion = $"v{appVersion}";
       if (actualVersion != expectedVersion) {
         throw new Exception($"Actual version '{actualVersion}' does not match expected version '{expectedVersion}'.");
       }
     }
+
+    var uninstallSettings = new ChocolateyUninstallSettings {
+    };
+    ChocolateyUninstall(packageName, uninstallSettings);
   });
 
 Task("Package")
@@ -89,20 +79,9 @@ Task("Package")
 Task("Publish")
   .IsDependentOn("Package")
   .Does(() => {
-    CopyFiles(buildDirectory.Path + "/**/*.nupkg", artifactsDirectory);
+    CopyFiles(workDirectory.Path + $"/**/{packageName}.${packageVersion}.nupkg", artifactsDirectory);
+
+    Information($"Copied artifacts to '{artifactsDirectory}'.");
   });
-
-Task("Clean")
-  .IsDependentOn("Version")
-  .Does(() => {
-    ChocolateyUninstall(packageId);
-
-    CleanDirectory(artifactsDirectory);
-
-    CleanDirectory(buildDirectory);
-  });
-
-Task("Default")
-  .IsDependentOn("Publish");
 
 RunTarget(target);

@@ -1,13 +1,14 @@
 trigger:
 - master
-- feature*/*
+- feature/*
+- hotfix/*
 - refs/tags/*
 
 pr: none
 
 stages:
 - stage: ci
-  displayName: ci
+  displayName: CI
 
   jobs:
   - job: build
@@ -16,21 +17,30 @@ stages:
       vmImage: windows-2019
 
     steps:
-    - script: |
-        dotnet tool install Cake.Tool --global --version 0.33.0
-        dotnet tool install GitVersion.Tool --global --version 4.0.1-beta1-65
-      displayName: Init - .NET - Tools
+    - template: build/azure-pipelines.ci.build.yml
 
-    - script: |
-        dotnet cake build.cake --target=publish --artifacts-directory=$(Build.ArtifactStagingDirectory)
-      displayName: Build - Publish
+- stage: cd
+  displayName: CD
 
-    - task: PublishPipelineArtifact@0
-      displayName: Artifacts - Publish
-      inputs:
-        targetPath: '$(Build.ArtifactStagingDirectory)'
-        artifactName: ci-build
+  jobs:
+  - job: deployLocalhost
+    displayName: Deploy - localhost
+    pool:
+      vmImage: windows-2019
+    variables:
+    - group: chocolatey-source-localhost
 
-    - script: |
-        dotnet cake build.cake --target=clean --artifacts-directory=$(Build.ArtifactStagingDirectory)
-      displayName: Clean - Build
+    steps:
+    - template: build/azure-pipelines.cd.deploy.yml
+
+  - job: deployChocolateyOrg
+    displayName: Deploy - chocolatey.org
+    pool:
+      vmImage: windows-2019
+    variables:
+    - group: chocolatey-source-chocolateyorg
+    dependsOn: deployLocalhost
+    condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
+
+    steps:
+    - template: build/azure-pipelines.cd.deploy.yml

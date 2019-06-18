@@ -1,0 +1,33 @@
+steps:
+- template: azure-pipelines.core.init-dotnet-tools.yml
+
+- powershell: |
+    choco apikey --source $env:CHOCOLATEY_APIKEY_SOURCE --key $env:CHOCOLATEY_APIKEY_VALUE
+  displayName: Init - Choco - API Key
+  env:
+    CHOCOLATEY_APIKEY_SOURCE: $(chocolatey-source-server-push)
+    CHOCOLATEY_APIKEY_VALUE: $(chocolatey-source-apikey)
+  condition: and(succeeded(), ne(variables['chocolatey-source-apikey'], ''))
+
+- task: DownloadPipelineArtifact@0
+  displayName: Restore - Artifacts
+  inputs:
+    artifactName: ci-build
+    targetPath: $(Build.ArtifactStagingDirectory)
+
+- script: |
+    dotnet cake deploy.cake --target=publish --artifacts-directory=$(Build.ArtifactStagingDirectory) --package-registry-push=$(chocolatey-source-server-push) --package-registry-pull=$(chocolatey-source-server-pull)
+  displayName: Build - Publish
+
+- script: |
+    dotnet cake deploy.cake --target=clean --artifacts-directory=$(Build.ArtifactStagingDirectory) --package-registry-push=$(chocolatey-source-server-push) --package-registry-pull=$(chocolatey-source-server-pull)
+  displayName: Clean - Build
+  condition: always()
+
+- powershell: |
+    choco apikey --source $env:CHOCOLATEY_APIKEY_SOURCE --key "-"
+    choco apikey --source $env:CHOCOLATEY_APIKEY_SOURCE --remove
+  displayName: Clean - Choco - API Key
+  env:
+    CHOCOLATEY_APIKEY_SOURCE: $(chocolatey-source-server-push)
+  condition: ne(variables['chocolatey-source-apikey'], '')
