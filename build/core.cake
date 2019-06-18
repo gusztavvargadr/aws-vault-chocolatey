@@ -92,7 +92,6 @@ Task("Clean")
     };
     DockerComposeDown(downSettings);
 
-    CleanDirectory(artifactsDirectory);
     CleanDirectory(workDirectory);
 
     Cleaned();

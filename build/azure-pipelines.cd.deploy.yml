@@ -13,7 +13,7 @@ steps:
   displayName: Restore - Artifacts
   inputs:
     artifactName: ci-build
-    targetPath: '$(Build.ArtifactStagingDirectory)'
+    targetPath: $(Build.ArtifactStagingDirectory)
 
 - script: |
     dotnet cake deploy.cake --target=publish --artifacts-directory=$(Build.ArtifactStagingDirectory) --package-registry=$(chocolatey-source-server)
