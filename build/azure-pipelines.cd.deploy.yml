@@ -16,11 +16,11 @@ steps:
     targetPath: $(Build.ArtifactStagingDirectory)
 
 - script: |
-    dotnet cake deploy.cake --target=publish --artifacts-directory=$(Build.ArtifactStagingDirectory) --package-registry-push=$(chocolatey-source-server-push) --package-registry-pull=$(chocolatey-source-server-pull)
+    dotnet cake deploy.cake --target=publish --artifacts-directory=$(Build.ArtifactStagingDirectory) --app-version=$(version-app) --package-version=$(version-package) --package-registry-push=$(chocolatey-source-server-push) --package-registry-pull=$(chocolatey-source-server-pull)
   displayName: Build - Publish
 
 - script: |
-    dotnet cake deploy.cake --target=clean --artifacts-directory=$(Build.ArtifactStagingDirectory) --package-registry-push=$(chocolatey-source-server-push) --package-registry-pull=$(chocolatey-source-server-pull)
+    dotnet cake deploy.cake --target=clean --artifacts-directory=$(Build.ArtifactStagingDirectory) --app-version=$(version-app) --package-version=$(version-package) --package-registry-push=$(chocolatey-source-server-push) --package-registry-pull=$(chocolatey-source-server-pull)
   displayName: Clean - Build
   condition: always()
 
