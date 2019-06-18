@@ -8,11 +8,9 @@ pr: none
 
 stages:
 - stage: ci
-  displayName: CI
 
   jobs:
   - job: build
-    displayName: Build
     pool:
       vmImage: windows-2019
 
@@ -20,11 +18,9 @@ stages:
     - template: build/azure-pipelines.ci.build.yml
 
 - stage: cd
-  displayName: CD
 
   jobs:
   - job: deployLocalhost
-    displayName: Deploy - localhost
     pool:
       vmImage: windows-2019
     variables:
@@ -34,7 +30,6 @@ stages:
     - template: build/azure-pipelines.cd.deploy.yml
 
   - job: deployChocolateyOrg
-    displayName: Deploy - chocolatey.org
     pool:
       vmImage: windows-2019
     variables:
