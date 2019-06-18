@@ -7,10 +7,10 @@ var target = Argument("target", "Publish");
 var configuration = Argument("configuration", "Release");
 
 var sourceVersion = Argument("source-version", string.Empty);
-var buildVersion = Argument("build-version", string.Empty);
-var appVersion = Argument("app-version", "4.6.0");
-var packageVersion = Argument("package-version", string.Empty);
 Semver.SemVersion sourceSemVer;
+var buildVersion = Argument("build-version", string.Empty);
+var appVersion = Argument("app-version", string.Empty);
+var packageVersion = Argument("package-version", string.Empty);
 
 var sourceDirectory = Directory(Argument("source-directory", "./src"));
 var workDirectory = Directory(Argument("work-directory", "./work"));
@@ -28,10 +28,10 @@ var packageFile  = workDirectory + File($"tools/{packageFilename}");
 Task("Version")
   .Does(() => {
     sourceVersion = !string.IsNullOrEmpty(sourceVersion) ? sourceVersion : GetSourceVersion();
+    sourceSemVer = ParseSemVer(sourceVersion);
     buildVersion = !string.IsNullOrEmpty(buildVersion) ? buildVersion : GetBuildVersion();
     appVersion = !string.IsNullOrEmpty(appVersion) ? appVersion : GetAppVersion();
     packageVersion = !string.IsNullOrEmpty(packageVersion) ? packageVersion : GetPackageVersion();
-    sourceSemVer = ParseSemVer(sourceVersion);
 
     Information($"Source: '{sourceVersion}'.");
     Information($"Build: '{buildVersion}'.");
@@ -63,7 +63,7 @@ Func<string> GetBuildVersion = () => {
 };
 
 Func<string> GetAppVersion = () => {
-  return sourceVersion;
+  return new Semver.SemVersion(sourceSemVer.Major, sourceSemVer.Minor, sourceSemVer.Patch).ToString();
 };
 
 Func<string> GetPackageVersion = () => {

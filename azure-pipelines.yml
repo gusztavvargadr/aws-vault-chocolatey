@@ -15,6 +15,8 @@ stages:
     displayName: Build
     pool:
       vmImage: windows-2019
+    variables:
+    - group: version-4.6.0
 
     steps:
     - template: build/azure-pipelines.ci.build.yml
@@ -28,6 +30,7 @@ stages:
     pool:
       vmImage: windows-2019
     variables:
+    - group: version-4.6.0
     - group: chocolatey-source-localhost
 
     steps:
@@ -38,6 +41,7 @@ stages:
     pool:
       vmImage: windows-2019
     variables:
+    - group: version-4.6.0
     - group: chocolatey-source-chocolateyorg
     dependsOn: deployLocalhost
     condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
