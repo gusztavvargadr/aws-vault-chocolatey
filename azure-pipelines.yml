@@ -8,7 +8,7 @@ pr: none
 
 stages:
 - stage: ci
-  displayName: Continuous Integration
+  displayName: CI
 
   jobs:
   - job: build
@@ -20,15 +20,25 @@ stages:
     - template: build/azure-pipelines.ci.build.yml
 
 - stage: cd
-  displayName: Continuous Delivery
+  displayName: CD
 
   jobs:
   - job: deployLocalhost
-    displayName: Deploy - chocolatey-source-localhost
+    displayName: Deploy - localhost
     pool:
       vmImage: windows-2019
     variables:
     - group: chocolatey-source-localhost
+
+    steps:
+    - template: build/azure-pipelines.cd.deploy.yml
+
+  - job: deployChocolateyOrg
+    displayName: Deploy - chocolatey.org
+    pool:
+      vmImage: windows-2019
+    variables:
+    - group: chocolatey-source-chocolateyorg
 
     steps:
     - template: build/azure-pipelines.cd.deploy.yml
