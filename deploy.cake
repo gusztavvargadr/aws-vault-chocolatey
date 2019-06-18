@@ -23,6 +23,9 @@ Task("Test")
   .IsDependentOn("Build")
   .Does(() => {
     var installSettings = new ChocolateyInstallSettings {
+      Debug = true,
+      Verbose = true,
+      WorkingDirectory = workDirectory,
       Source = packageRegistryPull,
       Version = packageVersion,
       Prerelease = !string.IsNullOrEmpty(sourceSemVer.Prerelease)

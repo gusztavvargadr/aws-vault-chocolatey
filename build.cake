@@ -40,8 +40,9 @@ Task("Test")
     var installSettings = new ChocolateyInstallSettings {
       Debug = true,
       Verbose = true,
-      Source = ".",
       WorkingDirectory = workDirectory,
+      Source = ".",
+      Version = packageVersion,
       Prerelease = !string.IsNullOrEmpty(sourceSemVer.Prerelease)
     };
     ChocolateyInstall(packageName, installSettings);
