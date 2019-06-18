@@ -20,7 +20,8 @@ var appSourceRepository = "https://github.com/99designs/aws-vault";
 Func<string> appDownloadUrl = () => $"{appSourceRepository}/releases/download/v{appVersion}/aws-vault-windows-386.exe";
 
 var packageName = Argument("package-name", "aws-vault");
-var packageRegistry = Argument("package-registry", "http://localhost:5000/chocolatey");
+var packageRegistryPush = Argument("package-registry-push", "http://localhost:5000/chocolatey");
+var packageRegistryPull = Argument("package-registry-pull", "http://localhost:5000/chocolatey");
 var packageFilename = "aws-vault.exe";
 var packageFile  = workDirectory + File($"tools/{packageFilename}");
 

@@ -14,7 +14,7 @@ Task("Build")
   .IsDependentOn("Restore")
   .Does(() => {
     var pushSettings = new ChocolateyPushSettings {
-      Source = packageRegistry
+      Source = packageRegistryPush
     };
     ChocolateyPush(GetFiles(workDirectory.Path + "/**/*.nupkg"), pushSettings);
   });
@@ -23,7 +23,7 @@ Task("Test")
   .IsDependentOn("Build")
   .Does(() => {
     var installSettings = new ChocolateyInstallSettings {
-      Source = packageRegistry,
+      Source = packageRegistryPull,
       Version = packageVersion,
       Prerelease = !string.IsNullOrEmpty(sourceSemVer.Prerelease)
     };
