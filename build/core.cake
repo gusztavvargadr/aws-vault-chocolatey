@@ -8,8 +8,7 @@ var configuration = Argument("configuration", "Release");
 
 var sourceVersion = Argument("source-version", string.Empty);
 var buildVersion = Argument("build-version", string.Empty);
-var defaultAppVersion = "4.6.0";
-var appVersion = Argument("app-version", defaultAppVersion);
+var appVersion = Argument("app-version", "4.6.0");
 var packageVersion = Argument("package-version", string.Empty);
 Semver.SemVersion sourceSemVer;
 
@@ -21,8 +20,7 @@ var appSourceRepository = "https://github.com/99designs/aws-vault";
 Func<string> appDownloadUrl = () => $"{appSourceRepository}/releases/download/v{appVersion}/aws-vault-windows-386.exe";
 
 var packageName = Argument("package-name", "aws-vault");
-var defaultPackageRegistry = "http://localhost:5000/chocolatey";
-var packageRegistry = Argument("package-registry", defaultPackageRegistry);
+var packageRegistry = Argument("package-registry", "http://localhost:5000/chocolatey");
 var packageFilename = "aws-vault.exe";
 var packageFile  = workDirectory + File($"tools/{packageFilename}");
 

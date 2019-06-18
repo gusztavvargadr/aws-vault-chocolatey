@@ -39,7 +39,7 @@ stages:
       vmImage: windows-2019
     variables:
     - group: chocolatey-source-chocolateyorg
-    condition: 'False'
+    condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/')))
 
     steps:
     - template: build/azure-pipelines.cd.deploy.yml
