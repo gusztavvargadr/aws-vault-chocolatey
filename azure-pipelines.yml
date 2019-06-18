@@ -8,7 +8,7 @@ pr: none
 
 stages:
 - stage: ci
-  displayName: CI2
+  displayName: CI
 
   jobs:
   - job: build
@@ -24,7 +24,7 @@ stages:
 
   jobs:
   - job: deployLocalhost
-    displayName: Deploy - localhost2
+    displayName: Deploy - localhost
     pool:
       vmImage: windows-2019
     variables:
