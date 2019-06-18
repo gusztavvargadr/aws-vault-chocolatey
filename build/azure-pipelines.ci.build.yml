@@ -2,7 +2,7 @@ steps:
 - template: azure-pipelines.core.init-dotnet-tools.yml
 
 - script: |
-    dotnet cake build.cake --target=publish --app-version=$(app-version) --package-version=$(package-version) --artifacts-directory=$(Build.ArtifactStagingDirectory)
+    dotnet cake build.cake --target=publish --artifacts-directory=$(Build.ArtifactStagingDirectory)
   displayName: Build - Publish
 
 - task: PublishPipelineArtifact@0
@@ -12,6 +12,6 @@ steps:
     targetPath: $(Build.ArtifactStagingDirectory)
 
 - script: |
-    dotnet cake build.cake --target=clean --app-version=$(app-version) --package-version=$(package-version) --artifacts-directory=$(Build.ArtifactStagingDirectory)
+    dotnet cake build.cake --target=clean --artifacts-directory=$(Build.ArtifactStagingDirectory)
   displayName: Clean - Build
   condition: always()

@@ -1,4 +1,4 @@
-#load "core.cake"
+#load "./build/core.cake"
 
 Restored = () => {
   CopyFiles(artifactsDirectory.Path + "/**/*.nupkg", workDirectory);
@@ -14,10 +14,8 @@ Task("Build")
   .IsDependentOn("Restore")
   .Does(() => {
     var pushSettings = new ChocolateyPushSettings {
-      Source = "http://localhost:5000/chocolatey",
-      ApiKey = "chocolateyrocks"
+      Source = packageRegistry
     };
-
     ChocolateyPush(GetFiles(workDirectory.Path + "/**/*.nupkg"), pushSettings);
   });
 
@@ -25,15 +23,15 @@ Task("Test")
   .IsDependentOn("Build")
   .Does(() => {
     var installSettings = new ChocolateyInstallSettings {
-      Source = "http://localhost:5000/chocolatey",
-      Version = packageVersion
+      Source = packageRegistry,
+      Version = packageVersion,
+      Prerelease = !string.IsNullOrEmpty(sourceSemVer.Prerelease)
     };
-
-    ChocolateyInstall(packageId, installSettings);
+    ChocolateyInstall(packageName, installSettings);
 
     var uninstallSettings = new ChocolateyUninstallSettings {
     };
-    ChocolateyUninstall(packageId, uninstallSettings);
+    ChocolateyUninstall(packageName, uninstallSettings);
   });
 
 Task("Package")
