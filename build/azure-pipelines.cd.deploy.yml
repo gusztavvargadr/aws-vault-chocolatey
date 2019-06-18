@@ -2,7 +2,7 @@ steps:
 - template: azure-pipelines.core.init-dotnet-tools.yml
 
 - script: |
-    choco apikey --source $CHOCOLATEY_APIKEY_SOURCE --key $CHOCOLATEY_APIKEY_VALUE
+    choco apikey --source $env:CHOCOLATEY_APIKEY_SOURCE --key $env:CHOCOLATEY_APIKEY_VALUE
   displayName: Init - Choco - API Key
   env:
     CHOCOLATEY_APIKEY_SOURCE: $(chocolatey-source-server)
@@ -25,7 +25,7 @@ steps:
   condition: always()
 
 - script: |
-    choco apikey --source $CHOCOLATEY_APIKEY_SOURCE --remove
+    choco apikey --source $env:CHOCOLATEY_APIKEY_SOURCE --remove
   displayName: Clean - Choco - API Key
   env:
     CHOCOLATEY_APIKEY_SOURCE: $(chocolatey-source-server)
