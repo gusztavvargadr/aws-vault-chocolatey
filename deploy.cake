@@ -1,7 +1,7 @@
 #load "./build/core.cake"
 
 Restored = () => {
-  CopyFiles(artifactsDirectory.Path + "/**/*.nupkg", workDirectory);
+  CopyFiles(artifactsDirectory.Path + $"/**/{packageName}.${packageVersion}.nupkg", workDirectory);
 
   var upSettings = new DockerComposeUpSettings {
     DetachedMode = true
@@ -16,7 +16,7 @@ Task("Build")
     var pushSettings = new ChocolateyPushSettings {
       Source = packageRegistryPush
     };
-    ChocolateyPush(GetFiles(workDirectory.Path + "/**/*.nupkg"), pushSettings);
+    ChocolateyPush(GetFiles(workDirectory.Path + $"/**/{packageName}.${packageVersion}.nupkg"), pushSettings);
   });
 
 Task("Test")

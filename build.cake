@@ -79,7 +79,7 @@ Task("Package")
 Task("Publish")
   .IsDependentOn("Package")
   .Does(() => {
-    CopyFiles(workDirectory.Path + "/**/*.nupkg", artifactsDirectory);
+    CopyFiles(workDirectory.Path + $"/**/{packageName}.${packageVersion}.nupkg", artifactsDirectory);
 
     Information($"Copied artifacts to '{artifactsDirectory}'.");
   });
