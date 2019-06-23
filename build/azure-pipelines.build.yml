@@ -1,6 +1,8 @@
 jobs:
 - job: build
   displayName: Build
+  pool:
+    vmImage: windows-2019
 
   steps:
   - template: azure-pipelines.core.yml
