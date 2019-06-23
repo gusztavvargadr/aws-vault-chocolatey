@@ -7,44 +7,30 @@ trigger:
 pr: none
 
 stages:
-- stage: ci
-  displayName: CI
+- stage: build
+  displayName: Build
+  variables:
+  - group: version-4.6.0
 
   jobs:
-  - job: build
-    displayName: Build
-    pool:
-      vmImage: windows-2019
-    variables:
-    - group: version-4.6.0
+  - template: build/azure-pipelines.build.yml
 
-    steps:
-    - template: build/azure-pipelines.ci.build.yml
-
-- stage: cd
-  displayName: CD
+- stage: deployLocalhost
+  displayName: Deploy - localhost
+  variables:
+  - group: chocolatey-source-localhost
+  - group: version-4.6.0
 
   jobs:
-  - job: deployLocalhost
-    displayName: Deploy - localhost
-    pool:
-      vmImage: windows-2019
-    variables:
-    - group: version-4.6.0
-    - group: chocolatey-source-localhost
+  - template: build/azure-pipelines.deploy.yml
 
-    steps:
-    - template: build/azure-pipelines.cd.deploy.yml
 
-  - job: deployChocolateyOrg
-    displayName: Deploy - chocolatey.org
-    pool:
-      vmImage: windows-2019
-    variables:
-    - group: version-4.6.0
-    - group: chocolatey-source-chocolateyorg
-    dependsOn: deployLocalhost
-    condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
+- stage: deployChocolateyOrg
+  displayName: Deploy - chocolatey.org
+  variables:
+  - group: chocolatey-source-chocolateyorg
+  - group: version-4.6.0
+  condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
 
-    steps:
-    - template: build/azure-pipelines.cd.deploy.yml
+  jobs:
+  - template: build/azure-pipelines.deploy.yml

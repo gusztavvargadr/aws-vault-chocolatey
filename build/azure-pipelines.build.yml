@@ -1,0 +1,21 @@
+jobs:
+- job: build
+  displayName: Build
+
+  steps:
+  - template: azure-pipelines.core.yml
+
+  - script: |
+      dotnet cake build.cake --target=publish --artifacts-directory=$(Build.ArtifactStagingDirectory) --app-version=$(version-app) --package-version=$(version-package)
+    displayName: Build - Publish
+
+  - task: PublishPipelineArtifact@0
+    displayName: Publish - Artifacts
+    inputs:
+      artifactName: build
+      targetPath: $(Build.ArtifactStagingDirectory)
+
+  - script: |
+      dotnet cake build.cake --target=clean --artifacts-directory=$(Build.ArtifactStagingDirectory) --app-version=$(version-app) --package-version=$(version-package)
+    displayName: Clean - Build
+    condition: always()
