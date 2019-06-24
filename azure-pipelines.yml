@@ -24,7 +24,6 @@ stages:
   jobs:
   - template: build/azure-pipelines.deploy.yml
 
-
 - stage: deployChocolateyOrg
   displayName: Deploy - chocolatey.org
   variables:
