@@ -10,7 +10,7 @@ stages:
 - stage: build
   displayName: Build
   variables:
-  - group: version-4.6.0
+  - group: version-latest
 
   jobs:
   - template: build/azure-pipelines.build.yml
@@ -19,7 +19,7 @@ stages:
   displayName: Deploy - localhost
   variables:
   - group: chocolatey-source-localhost
-  - group: version-4.6.0
+  - group: version-latest
 
   jobs:
   - template: build/azure-pipelines.deploy.yml
@@ -28,7 +28,7 @@ stages:
   displayName: Deploy - chocolatey.org
   variables:
   - group: chocolatey-source-chocolateyorg
-  - group: version-4.6.0
+  - group: version-latest
   condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
 
   jobs:
