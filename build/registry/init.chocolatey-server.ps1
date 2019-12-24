@@ -1,3 +1,4 @@
+$version = '0.2.5'
 $siteName = 'ChocolateyServer'
 $appPoolName = 'ChocolateyServerAppPool'
 $sitePath = 'c:\tools\chocolatey.server'
@@ -35,7 +36,7 @@ if ($null -eq (Get-Command -Name 'choco.exe' -ErrorAction SilentlyContinue)) {
 }
 
 # Install Chocolatey.Server
-choco upgrade chocolatey.server --yes --no-progress
+choco upgrade chocolatey.server --yes --no-progress --version $version
 
 # Step by step instructions here https://chocolatey.org/docs/how-to-set-up-chocolatey-server#setup-normally
 # Import the right modules
