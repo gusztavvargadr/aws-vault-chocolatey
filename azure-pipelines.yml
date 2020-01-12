@@ -1,29 +1,30 @@
 pr: none
 
+variables:
+  - group: pipeline
+
 stages:
-- stage: build
-  displayName: Build
-  variables:
-  - group: version-latest
+  - stage: build
+    displayName: Build
 
-  jobs:
-  - template: build/azure-pipelines.build.yml
+    jobs:
+      - template: build/azure-pipelines.build.yml
 
-- stage: deployLocalhost
-  displayName: Deploy - localhost
-  variables:
-  - group: chocolatey-source-localhost
-  - group: version-latest
+  # - stage: deployLocalhost
+  #   displayName: Deploy - localhost
+  #   variables:
+  #   - group: chocolatey-source-localhost
+  #   - group: version-latest
 
-  jobs:
-  - template: build/azure-pipelines.deploy.yml
+  #   jobs:
+  #   - template: build/azure-pipelines.deploy.yml
 
-- stage: deployChocolateyOrg
-  displayName: Deploy - chocolatey.org
-  variables:
-  - group: chocolatey-source-chocolateyorg
-  - group: version-latest
-  condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
+  # - stage: deployChocolateyOrg
+  #   displayName: Deploy - chocolatey.org
+  #   variables:
+  #   - group: chocolatey-source-chocolateyorg
+  #   - group: version-latest
+  #   condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
 
-  jobs:
-  - template: build/azure-pipelines.deploy.yml
+  #   jobs:
+  #   - template: build/azure-pipelines.deploy.yml

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
+  <metadata>
+    <id><%= @id %></id>
+    <version><%= @package_version %></version>
+    <packageSourceUrl><%= @package_source_url %></packageSourceUrl>
+    <owners>Gusztav Varga</owners>
+    <title><%= @title %></title>
+    <authors>99designs</authors>
+    <projectUrl>https://99designs.com.au/tech-blog/blog/2015/10/26/aws-vault/</projectUrl>
+    <iconUrl>https://99designs.com/og-image.png</iconUrl>
+    <copyright>2015 99designs</copyright>
+    <licenseUrl><%= @project_license_url %></licenseUrl>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <projectSourceUrl><%= @project_source_url %></projectSourceUrl>
+    <docsUrl><%= @project_source_url %>blob/v<%= @project_version %>/README.md</docsUrl>
+    <bugTrackerUrl><%= @project_source_url %>issues/</bugTrackerUrl>
+    <tags>aws-vault 99designs</tags>
+    <summary>A vault for securely storing and accessing AWS credentials in development environments</summary>
+    <description>
+      AWS Vault is a tool to securely store and access AWS credentials in a development environment.
+
+      AWS Vault stores IAM credentials in your operating system's secure keystore and then generates temporary credentials from those to expose to your shell and applications. It's designed to be complementary to the AWS CLI tools, and is aware of your profiles and configuration in `~/.aws/config`.
+
+      For more information please see [the original repository][AWS Vault].
+
+      [AWS Vault]: https://github.com/99designs/aws-vault/
+    </description>
+    <releaseNotes><%= @project_source_url %>releases/tag/v<%= @project_version %>/</releaseNotes>
+  </metadata>
+  <files>
+    <file src="tools\**" target="tools" />
+  </files>
+</package>

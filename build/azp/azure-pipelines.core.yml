@@ -1,0 +1,4 @@
+steps:
+  - script: |
+      dotnet tool install Cake.Tool --global --version 0.35.0
+    displayName: .NET Init

@@ -1,14 +1,4 @@
-#load "./build/core.cake"
-
-Restored = () => {
-  CopyFiles(artifactsDirectory.Path + $"/**/{packageName}.{packageVersion}.nupkg", workDirectory);
-
-  var upSettings = new DockerComposeUpSettings {
-    DetachedMode = true
-  };
-  var service = "registry";
-  DockerComposeUp(upSettings, service);
-};
+#load ./build/cake/core.cake
 
 Task("Build")
   .IsDependentOn("Restore")
