@@ -8,7 +8,7 @@ stages:
     displayName: Build
 
     jobs:
-      - template: build/azure-pipelines.build.yml
+      - template: build/azp/azure-pipelines.build.yml
 
   # - stage: deployLocalhost
   #   displayName: Deploy - localhost
@@ -17,7 +17,7 @@ stages:
   #   - group: version-latest
 
   #   jobs:
-  #   - template: build/azure-pipelines.deploy.yml
+  #   - template: build/azp/azure-pipelines.deploy.yml
 
   # - stage: deployChocolateyOrg
   #   displayName: Deploy - chocolatey.org
@@ -27,4 +27,4 @@ stages:
   #   condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
 
   #   jobs:
-  #   - template: build/azure-pipelines.deploy.yml
+  #   - template: build/azp/azure-pipelines.deploy.yml
