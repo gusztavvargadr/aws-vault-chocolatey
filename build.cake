@@ -16,19 +16,14 @@ Task("Build")
   .Does(() => {
     {
       var settings = new DockerComposeRunSettings {
-        Entrypoint = "powershell"
+        Entrypoint = "powershell -File ./build/docker/chef.policy.run.ps1",
+        Environment = new [] {
+          $"CHOCOLATEY_PACKAGE_VERSION={packageVersion}",
+          $"CHOCOLATEY_PROJECT_VERSION={projectVersion}",
+        }
       };
       var service = "chef";
-      var command = "-File ./build/docker/chef.policy.ps1";
-      DockerComposeRun(settings, service, command);
-    }
-
-    {
-      var settings = new DockerComposeRunSettings {
-      };
-      var service = "chocolatey";
-      var command = "pack ./.chocolatey/packages/aws-vault/aws-vault.nuspec --output-directory ./.chocolatey/packages/";
-      DockerComposeRun(settings, service, command);
+      DockerComposeRun(settings, service);
     }
   });
 

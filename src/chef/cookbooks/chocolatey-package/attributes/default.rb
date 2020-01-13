@@ -3,7 +3,7 @@ default['chocolatey-package'] = {
   'id' => 'aws-vault',
   'title' => 'AWS Vault',
   'package-source-url' => 'https://github.com/gusztavvargadr/aws-vault-chocolatey/',
-  'package-version' => '5.0.1',
+  'package-version' => ENV['CHOCOLATEY_PACKAGE_VERSION'],
   'project-source-url' => 'https://github.com/99designs/aws-vault/',
-  'project-version' => '5.0.1',
+  'project-version' => ENV['CHOCOLATEY_PROJECT_VERSION'],
 }

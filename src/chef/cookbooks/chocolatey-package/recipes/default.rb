@@ -6,8 +6,8 @@ package_version = node['chocolatey-package']['package-version']
 project_source_url = node['chocolatey-package']['project-source-url']
 project_version = node['chocolatey-package']['project-version']
 
-project_download_url = "#{project_source_url}releases/download/v#{project_version}/aws-vault-windows-386.exe"
-project_download_path = "#{directory_path}tools/aws-vault.exe"
+project_download_url = "#{project_source_url}releases/download/v#{project_version}/#{id}-windows-386.exe"
+project_download_path = "#{directory_path}tools/#{id}.exe"
 project_download_hash_md5 = ''
 project_download_hash_sha256 = ''
 project_download_hash_sha512 = ''
@@ -19,8 +19,8 @@ directory directory_path do
   action :create
 end
 
-template "#{directory_path}aws-vault.nuspec" do
-  source 'aws-vault.nuspec.erb'
+template "#{directory_path}#{id}.nuspec" do
+  source 'chocolatey-package.nuspec.erb'
   variables(
     id: id,
     title: title,

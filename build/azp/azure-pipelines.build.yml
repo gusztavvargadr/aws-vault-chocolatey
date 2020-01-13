@@ -10,9 +10,9 @@ jobs:
 
       - script: |
           dotnet cake build.cake --target=publish --package-version=$(package-version) --project-version=$(project-version)
-        displayName: Build - Publish
+        displayName: Cake Publish
 
       - script: |
           dotnet cake build.cake --target=clean --package-version=$(package-version) --project-version=$(project-version)
-        displayName: Clean - Build
+        displayName: Cake Clean
         condition: always()
