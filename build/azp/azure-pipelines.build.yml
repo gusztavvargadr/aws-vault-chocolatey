@@ -16,3 +16,8 @@ jobs:
           dotnet cake build.cake --target=clean --package-version=$(package-version) --project-version=$(project-version)
         displayName: Cake Clean
         condition: always()
+
+      - publish: $(Build.SourcesDirectory)/.chocolatey/
+        artifact: build-chocolatey
+        displayName: Artifacts Chocolatey Publish
+        condition: always()

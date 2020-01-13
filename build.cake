@@ -6,7 +6,7 @@ Task("Restore")
     {
       var settings = new DockerComposeBuildSettings {
       };
-      var services = new [] { "chocolatey", "chef" };
+      var services = new [] { "chef" };
       DockerComposeBuild(settings, services);
     }
   });
