@@ -27,7 +27,8 @@ Task("Test")
         Entrypoint = "powershell -File ./build/docker/chocolatey.package.install.ps1",
       };
       var service = "chocolatey";
-      DockerComposeRun(settings, service);
+      var command = $"{packageVersion}";
+      DockerComposeRun(settings, service, command);
     }
 
     // var uninstallSettings = new ChocolateyUninstallSettings {
