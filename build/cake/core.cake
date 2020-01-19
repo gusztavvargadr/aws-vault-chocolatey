@@ -11,19 +11,18 @@ var buildVersion = Argument("build-version", string.Empty);
 var projectVersion = Argument("project-version", string.Empty);
 var packageVersion = Argument("package-version", string.Empty);
 
-var packageRegistry = Argument("package-registry", EnvironmentVariable("CHOCOLATEY_SOURCE", string.Empty));
+var defaultChocolateyServer = "http://chocolatey-server/chocolatey";
+var chocolateyServer = EnvironmentVariable("CHOCOLATEY_SERVER", defaultChocolateyServer);
+
+var packageServer = Argument("package-server", string.Empty);
+if (string.IsNullOrEmpty(packageServer)) {
+  packageServer = defaultChocolateyServer;
+}
 
 Task("Init")
   .Does(() => {
     StartProcess("docker", "version");
     StartProcess("docker-compose", "version");
-
-    if (string.IsNullOrEmpty(sourceVersion)) {
-      var settings = new DockerComposeBuildSettings {
-      };
-      var services = new [] { "gitversion" };
-      DockerComposeBuild(settings, services);
-    }
   });
 
 Task("Version")
