@@ -19,5 +19,5 @@ jobs:
 
       - publish: $(Build.SourcesDirectory)/artifacts/chocolatey/
         displayName: Publish Chocolatey Artifacts
-        artifact: build-chocolatey
         condition: always()
+        artifact: build-chocolatey
