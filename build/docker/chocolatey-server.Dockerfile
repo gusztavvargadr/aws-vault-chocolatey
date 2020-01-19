@@ -1,9 +1,11 @@
-FROM mcr.microsoft.com/dotnet/framework/aspnet:4.8-windowsservercore-ltsc2019
+FROM gusztavvargadr/chocolatey-server:0.2.5-windows
 
-WORKDIR C:/opt/chocolatey/
+# FROM mcr.microsoft.com/dotnet/framework/aspnet:4.8-windowsservercore-ltsc2019
 
-ADD ./chocolatey-server.init.ps1 ./
-RUN powershell -File ./chocolatey-server.init.ps1
+# WORKDIR C:/opt/chocolatey/
 
-ADD ./chocolatey-server.install.ps1 ./
-RUN powershell -File ./chocolatey-server.install.ps1
+# ADD ./chocolatey-server.init.ps1 ./
+# RUN powershell -File ./chocolatey-server.init.ps1
+
+# ADD ./chocolatey-server.install.ps1 ./
+# RUN powershell -File ./chocolatey-server.install.ps1

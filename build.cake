@@ -42,6 +42,7 @@ Task("Test")
       var actualVersion = string.Join(Environment.NewLine, process.GetStandardOutput());
       Information($"Actual version: '{actualVersion}'.");
       var expectedVersion = $"v{projectVersion}";
+      Information($"Expected version: '{expectedVersion}'.");
       if (actualVersion != expectedVersion) {
         throw new Exception($"Actual version '{actualVersion}' does not match expected version '{expectedVersion}'.");
       }
