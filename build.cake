@@ -5,48 +5,56 @@ Task("Restore")
   .Does(() => {
     var settings = new DockerComposeBuildSettings {
     };
-    var services = new [] { "chef" };
+    var services = new [] { "chef-client" };
     DockerComposeBuild(settings, services);
   });
 
 Task("Build")
   .IsDependentOn("Restore")
   .Does(() => {
-    {
-      var settings = new DockerComposeRunSettings {
-        Entrypoint = "powershell -File ./build/docker/chef.policy.run.ps1",
-        Environment = new [] {
-          $"CHOCOLATEY_PROJECT_VERSION={projectVersion}",
-          $"CHOCOLATEY_PACKAGE_VERSION={packageVersion}"
-        }
-      };
-      var service = "chef";
-      DockerComposeRun(settings, service);
-    }
-
-    {
-      var settings = new DockerComposeRunSettings {
-        Entrypoint = "powershell -File ./build/docker/chocolatey.package.pack.ps1",
-      };
-      var service = "chocolatey";
-      DockerComposeRun(settings, service);
-    }
+    var settings = new DockerComposeRunSettings {
+      Entrypoint = "powershell -File ./build/docker/chef-client.cookbook.run.ps1",
+      Environment = new [] {
+        $"CHOCOLATEY_PROJECT_VERSION={projectVersion}",
+        $"CHOCOLATEY_PACKAGE_VERSION={packageVersion}"
+      }
+    };
+    var service = "chef-client";
+    DockerComposeRun(settings, service);
   });
 
 Task("Test")
   .IsDependentOn("Build")
   .Does(() => {
-    var settings = new DockerComposeRunSettings {
-      Entrypoint = "powershell -File ./build/docker/chocolatey.package.install.ps1",
-    };
-    var service = "chocolatey";
-    var command = $"{packageVersion}";
-    DockerComposeRun(settings, service, command);
+    // using(var process = StartAndReturnProcess(
+    //   packageFilename,
+    //   new ProcessSettings {
+    //     Arguments = "--version",
+    //     RedirectStandardOutput = true
+    //   }
+    // )) {
+    //   process.WaitForExit();
+    //   if (process.GetExitCode() != 0) {
+    //     throw new Exception($"Error executing '{packageFilename}': '{process.GetExitCode()}'.");
+    //   }
+
+    //   var actualVersion = string.Join(Environment.NewLine, process.GetStandardOutput());
+    //   Information($"Actual version: '{actualVersion}'.");
+    //   var expectedVersion = $"v{appVersion}";
+    //   if (actualVersion != expectedVersion) {
+    //     throw new Exception($"Actual version '{actualVersion}' does not match expected version '{expectedVersion}'.");
+    //   }
+    // }
   });
 
 Task("Package")
   .IsDependentOn("Test")
   .Does(() => {
+    var settings = new DockerComposeRunSettings {
+      Entrypoint = "powershell -File ./build/docker/chocolatey.package.pack.ps1",
+    };
+    var service = "chocolatey";
+    DockerComposeRun(settings, service);
   });
 
 Task("Publish")

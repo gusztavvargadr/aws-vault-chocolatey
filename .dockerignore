@@ -1,6 +1,6 @@
 tools/
 artifacts/
 
-**/Policyfile.lock.json
+**/nodes/
 
 .vagrant/

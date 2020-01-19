@@ -17,11 +17,6 @@ jobs:
         displayName: Clean Cake
         condition: always()
 
-      - publish: $(Build.SourcesDirectory)/artifacts/chef/
-        displayName: Publish Chef Artifacts
-        artifact: build-chef
-        condition: always()
-
       - publish: $(Build.SourcesDirectory)/artifacts/chocolatey/
         displayName: Publish Chocolatey Artifacts
         artifact: build-chocolatey

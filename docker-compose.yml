@@ -11,21 +11,10 @@ services:
 
     command: /showvariable NuGetVersionV2
 
-  chocolatey-server:
+  chef-client:
     build:
       context: ./build/docker/
-      dockerfile: ./chocolatey-server.Dockerfile
-
-    ports:
-      - '5000:80'
-
-    volumes:
-      - ${REPO_DIR}artifacts/chocolatey-server/packages/:C:/tools/chocolatey.server/App_Data/Packages/
-
-  chef:
-    build:
-      context: ./build/docker/
-      dockerfile: ./chef.Dockerfile
+      dockerfile: ./chef-client.Dockerfile
 
     volumes:
       - ${REPO_DIR}:C:/opt/chef/
