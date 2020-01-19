@@ -21,10 +21,6 @@ Task("Test")
       var command = $"{packageVersion}";
       DockerComposeRun(settings, service, command);
     }
-
-    // var uninstallSettings = new ChocolateyUninstallSettings {
-    // };
-    // ChocolateyUninstall(packageName, uninstallSettings);
   });
 
 Task("Package")

@@ -26,25 +26,26 @@ Task("Build")
 Task("Test")
   .IsDependentOn("Build")
   .Does(() => {
-    // using(var process = StartAndReturnProcess(
-    //   packageFilename,
-    //   new ProcessSettings {
-    //     Arguments = "--version",
-    //     RedirectStandardOutput = true
-    //   }
-    // )) {
-    //   process.WaitForExit();
-    //   if (process.GetExitCode() != 0) {
-    //     throw new Exception($"Error executing '{packageFilename}': '{process.GetExitCode()}'.");
-    //   }
+    var executablePath = "./artifacts/chocolatey/packages/aws-vault/tools/aws-vault.exe";
+    using(var process = StartAndReturnProcess(
+      executablePath,
+      new ProcessSettings {
+        Arguments = "--version",
+        RedirectStandardOutput = true
+      }
+    )) {
+      process.WaitForExit();
+      if (process.GetExitCode() != 0) {
+        throw new Exception($"Error executing '{executablePath}': '{process.GetExitCode()}'.");
+      }
 
-    //   var actualVersion = string.Join(Environment.NewLine, process.GetStandardOutput());
-    //   Information($"Actual version: '{actualVersion}'.");
-    //   var expectedVersion = $"v{appVersion}";
-    //   if (actualVersion != expectedVersion) {
-    //     throw new Exception($"Actual version '{actualVersion}' does not match expected version '{expectedVersion}'.");
-    //   }
-    // }
+      var actualVersion = string.Join(Environment.NewLine, process.GetStandardOutput());
+      Information($"Actual version: '{actualVersion}'.");
+      var expectedVersion = $"v{projectVersion}";
+      if (actualVersion != expectedVersion) {
+        throw new Exception($"Actual version '{actualVersion}' does not match expected version '{expectedVersion}'.");
+      }
+    }
   });
 
 Task("Package")
