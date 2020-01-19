@@ -1,10 +1,10 @@
-directory_path = node['chocolatey-package']['directory-path']
 id = node['chocolatey-package']['id']
 title = node['chocolatey-package']['title']
-package_source_url = node['chocolatey-package']['package-source-url']
-package_version = node['chocolatey-package']['package-version']
 project_source_url = node['chocolatey-package']['project-source-url']
 project_version = node['chocolatey-package']['project-version']
+package_source_url = node['chocolatey-package']['package-source-url']
+package_version = node['chocolatey-package']['package-version']
+directory_path = "#{node['chocolatey-package']['directory-path']}#{id}/"
 
 project_download_url = "#{project_source_url}releases/download/v#{project_version}/#{id}-windows-386.exe"
 project_download_path = "#{directory_path}tools/#{id}.exe"

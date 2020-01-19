@@ -2,66 +2,88 @@
 #addin nuget:?package=Cake.SemVer&version=4.0.0
 #addin nuget:?package=semver&version=2.0.4
 
-var defaulTarget = "Publish";
+var target = Argument("target", "Publish");
 
-var defaultPackageVersion = string.Empty;
-var defaultProjectVersion = string.Empty;
+var packageName = "aws-vault";
 
-var target = Argument("target", defaulTarget);
+var defaultChocolateySource = "http://chocolatey-server/chocolatey";
+var chocolateySource = EnvironmentVariable("CHOCOLATEY_SOURCE", defaultChocolateySource);
 
-var packageVersion = Argument("package-version", defaultPackageVersion);
-var projectVersion = Argument("project-version", defaultProjectVersion);
-
-Semver.SemVersion packageSemVer;
+var sourceVersion = Argument("source-version", string.Empty);
+Semver.SemVersion sourceSemVer;
+var buildVersion = Argument("build-version", string.Empty);
+var projectVersion = Argument("project-version", string.Empty);
+var packageVersion = Argument("package-version", string.Empty);
 
 Task("Init")
   .Does(() => {
     StartProcess("docker", "version");
     StartProcess("docker-compose", "version");
 
-    {
-      var settings = new DockerComposeBuildSettings {
-      };
-      var services = new [] { "gitversion" };
-      DockerComposeBuild(settings, services);
-    }
+    var settings = new DockerComposeBuildSettings {
+    };
+    var services = new [] { "gitversion" };
+    DockerComposeBuild(settings, services);
   });
 
 Task("Version")
   .IsDependentOn("Init")
   .Does((context) => {
-    if (packageVersion == defaultPackageVersion) {
-      var upSettings = new DockerComposeUpSettings {
-      };
-      var upServices = new [] { "gitversion" };
-      DockerComposeUp(upSettings, upServices);
+    if (string.IsNullOrEmpty(sourceVersion)) {
+      {
+        var settings = new DockerComposeUpSettings {
+        };
+        var services = new [] { "gitversion" };
+        DockerComposeUp(settings, services);
+      }
 
-      var logsRunner = new GenericDockerComposeRunner<DockerComposeLogsSettings>(
-        context.FileSystem,
-        context.Environment,
-        context.ProcessRunner,
-        context.Tools
-      );
-      var logsSettings = new DockerComposeLogsSettings {
-        NoColor = true
-      };
-      var logsService = "gitversion";
-      var logsOutput = logsRunner.RunWithResult(
-        "logs",
-        logsSettings,
-        (items) => items.Where(item => item.Contains('|')).ToArray(),
-        logsService
-      ).Last();
+      {
+        var runner = new GenericDockerComposeRunner<DockerComposeLogsSettings>(
+          context.FileSystem,
+          context.Environment,
+          context.ProcessRunner,
+          context.Tools
+        );
+        var settings = new DockerComposeLogsSettings {
+          NoColor = true
+        };
+        var service = "gitversion";
+        var output = runner.RunWithResult(
+          "logs",
+          settings,
+          (items) => items.Where(item => item.Contains('|')).ToArray(),
+          service
+        ).Last();
 
-      packageVersion = logsOutput.Split('|')[1].Trim();
+        sourceVersion = output.Split('|')[1].Trim();
+      }
     }
-    packageSemVer = ParseSemVer(packageVersion);
-    Information($"Package version: '{packageVersion}'.");
+    Information($"Source version: '{sourceVersion}'.");
+    sourceSemVer = ParseSemVer(sourceVersion);
 
-    if (projectVersion == defaultProjectVersion) {
-      projectVersion = new Semver.SemVersion(packageSemVer.Major, packageSemVer.Minor, packageSemVer.Patch).ToString();
+    if (string.IsNullOrEmpty(buildVersion)) {
+      buildVersion = $"{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
+    }
+    Information($"Build version: '{buildVersion}'.");
+
+    if (string.IsNullOrEmpty(projectVersion)) {
+      projectVersion = new Semver.SemVersion(sourceSemVer.Major, sourceSemVer.Minor, sourceSemVer.Patch).ToString();
     }
     Information($"Project version: '{projectVersion}'.");
+
+    if (string.IsNullOrEmpty(packageVersion)) {
+      packageVersion = sourceVersion;
+    }
+    Information($"Package version: '{packageVersion}'.");
+  });
+
+Task("RestoreCore")
+  .IsDependentOn("Version")
+  .Does(() => {
+    var settings = new DockerComposeBuildSettings {
+    };
+    var services = new [] { "chocolatey" };
+    DockerComposeBuild(settings, services);
   });
 
 Task("Clean")

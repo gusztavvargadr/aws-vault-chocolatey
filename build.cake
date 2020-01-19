@@ -1,14 +1,12 @@
 #load ./build/cake/core.cake
 
 Task("Restore")
-  .IsDependentOn("Version")
+  .IsDependentOn("RestoreCore")
   .Does(() => {
-    {
-      var settings = new DockerComposeBuildSettings {
-      };
-      var services = new [] { "chef" };
-      DockerComposeBuild(settings, services);
-    }
+    var settings = new DockerComposeBuildSettings {
+    };
+    var services = new [] { "chef" };
+    DockerComposeBuild(settings, services);
   });
 
 Task("Build")
@@ -18,11 +16,19 @@ Task("Build")
       var settings = new DockerComposeRunSettings {
         Entrypoint = "powershell -File ./build/docker/chef.policy.run.ps1",
         Environment = new [] {
-          $"CHOCOLATEY_PACKAGE_VERSION={packageVersion}",
           $"CHOCOLATEY_PROJECT_VERSION={projectVersion}",
+          $"CHOCOLATEY_PACKAGE_VERSION={packageVersion}"
         }
       };
       var service = "chef";
+      DockerComposeRun(settings, service);
+    }
+
+    {
+      var settings = new DockerComposeRunSettings {
+        Entrypoint = "powershell -File ./build/docker/chocolatey.package.pack.ps1",
+      };
+      var service = "chocolatey";
       DockerComposeRun(settings, service);
     }
   });
@@ -30,39 +36,12 @@ Task("Build")
 Task("Test")
   .IsDependentOn("Build")
   .Does(() => {
-//     var installSettings = new ChocolateyInstallSettings {
-//       // Debug = true,
-//       // Verbose = true,
-//       WorkingDirectory = workDirectory,
-//       Source = ".",
-//       Version = packageVersion,
-//       Prerelease = !string.IsNullOrEmpty(sourceSemVer.Prerelease)
-//     };
-//     ChocolateyInstall(packageName, installSettings);
-
-//     using(var process = StartAndReturnProcess(
-//       packageFilename,
-//       new ProcessSettings {
-//         Arguments = "--version",
-//         RedirectStandardOutput = true
-//       }
-//     )) {
-//       process.WaitForExit();
-//       if (process.GetExitCode() != 0) {
-//         throw new Exception($"Error executing '{packageFilename}': '{process.GetExitCode()}'.");
-//       }
-
-//       var actualVersion = string.Join(Environment.NewLine, process.GetStandardOutput());
-//       Information($"Actual version: '{actualVersion}'.");
-//       var expectedVersion = $"v{appVersion}";
-//       if (actualVersion != expectedVersion) {
-//         throw new Exception($"Actual version '{actualVersion}' does not match expected version '{expectedVersion}'.");
-//       }
-//     }
-
-//     var uninstallSettings = new ChocolateyUninstallSettings {
-//     };
-//     ChocolateyUninstall(packageName, uninstallSettings);
+    var settings = new DockerComposeRunSettings {
+      Entrypoint = "powershell -File ./build/docker/chocolatey.package.install.ps1",
+    };
+    var service = "chocolatey";
+    var command = $"{packageVersion}";
+    DockerComposeRun(settings, service, command);
   });
 
 Task("Package")

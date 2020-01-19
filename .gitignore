@@ -1,6 +1,6 @@
 tools/
-Policyfile.lock.json
-.chef/
-.chocolatey/
+artifacts/
+
+**/Policyfile.lock.json
 
 .vagrant/

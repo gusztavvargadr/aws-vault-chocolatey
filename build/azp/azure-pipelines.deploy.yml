@@ -1,39 +1,26 @@
 jobs:
-- job: deploy
-  displayName: Deploy
-  pool:
-    vmImage: windows-2019
+  - job: deploy
+    displayName: Deploy
+    pool:
+      vmImage: windows-2019
 
-  steps:
-  - template: azure-pipelines.core.yml
+    steps:
+      - template: azure-pipelines.core.yml
 
-  - task: DownloadPipelineArtifact@2
-    inputs:
-      artifact: build-chocolatey
-      path: $(Build.SourcesDirectory)/.chocolatey/
-    displayName: Artifacts Chocolatey Download
+      - task: DownloadPipelineArtifact@2
+        displayName: Download Chocolatey Artifacts
+        inputs:
+          artifact: build-chocolatey
+          path: $(Build.SourcesDirectory)/artifacts/chocolatey/
 
-  - powershell: |
-      choco apikey --source $env:CHOCOLATEY_APIKEY_SOURCE --key $env:CHOCOLATEY_APIKEY_VALUE
-    displayName: Chocolatey Init
-    env:
-      CHOCOLATEY_APIKEY_SOURCE: $(chocolatey-source-server-push)
-      CHOCOLATEY_APIKEY_VALUE: $(chocolatey-source-apikey)
-    condition: and(succeeded(), ne(variables['chocolatey-source-apikey'], ''))
+      - script: |
+          dotnet cake deploy.cake --target=publish  --package-version=$(package-version) --project-version=$(project-version)
+        displayName: Publish Cake
+        env:
+          CHOCOLATEY_SOURCE: $(chocolatey-source)
+          CHOCOLATEY_API_KEY: $(chocolatey-api-key)
 
-  - script: |
-      dotnet cake deploy.cake --target=publish  --package-version=$(package-version) --project-version=$(project-version)
-    displayName: Cake Publish
-
-  - script: |
-      dotnet cake deploy.cake --target=clean  --package-version=$(package-version) --project-version=$(project-version)
-    displayName: Cake Clean
-    condition: always()
-
-  - powershell: |
-      choco apikey --source $env:CHOCOLATEY_APIKEY_SOURCE --key "-"
-      choco apikey --source $env:CHOCOLATEY_APIKEY_SOURCE --remove
-    displayName: Chocolatey Clean
-    env:
-      CHOCOLATEY_APIKEY_SOURCE: $(chocolatey-source-server-push)
-    condition: ne(variables['chocolatey-source-apikey'], '')
+      - script: |
+          dotnet cake deploy.cake --target=clean  --package-version=$(package-version) --project-version=$(project-version)
+        displayName: Clean Cake
+        condition: always()

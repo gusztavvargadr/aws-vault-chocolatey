@@ -10,14 +10,19 @@ jobs:
 
       - script: |
           dotnet cake build.cake --target=publish --package-version=$(package-version) --project-version=$(project-version)
-        displayName: Cake Publish
+        displayName: Publish Cake
 
       - script: |
           dotnet cake build.cake --target=clean --package-version=$(package-version) --project-version=$(project-version)
-        displayName: Cake Clean
+        displayName: Clean Cake
         condition: always()
 
-      - publish: $(Build.SourcesDirectory)/.chocolatey/
+      - publish: $(Build.SourcesDirectory)/artifacts/chef/
+        displayName: Publish Chef Artifacts
+        artifact: build-chef
+        condition: always()
+
+      - publish: $(Build.SourcesDirectory)/artifacts/chocolatey/
+        displayName: Publish Chocolatey Artifacts
         artifact: build-chocolatey
-        displayName: Artifacts Chocolatey Publish
         condition: always()
