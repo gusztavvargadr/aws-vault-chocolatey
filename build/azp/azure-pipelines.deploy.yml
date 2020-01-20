@@ -1,0 +1,26 @@
+jobs:
+  - job: deploy
+    displayName: Deploy
+    pool:
+      vmImage: windows-2019
+
+    steps:
+      - template: azure-pipelines.core.yml
+
+      - task: DownloadPipelineArtifact@2
+        displayName: Download Chocolatey Artifacts
+        inputs:
+          artifact: build-chocolatey
+          path: $(Build.SourcesDirectory)/artifacts/chocolatey/
+
+      - script: |
+          dotnet cake deploy.cake --target=publish --project-version=$(project-version) --package-version=$(package-version)
+        displayName: Publish Cake
+        env:
+          CHOCOLATEY_SERVER: $(chocolatey-server)
+          CHOCOLATEY_API_KEY: $(chocolatey-api-key)
+
+      - script: |
+          dotnet cake deploy.cake --target=clean --project-version=$(project-version) --package-version=$(package-version)
+        displayName: Clean Cake
+        condition: always()

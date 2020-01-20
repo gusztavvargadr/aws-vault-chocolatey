@@ -1,40 +1,33 @@
-#load "./build/core.cake"
+#load ./build/cake/core.cake
 
-Restored = () => {
-  CopyFiles(artifactsDirectory.Path + $"/**/{packageName}.{packageVersion}.nupkg", workDirectory);
-
-  var upSettings = new DockerComposeUpSettings {
-    DetachedMode = true
-  };
-  var service = "registry";
-  DockerComposeUp(upSettings, service);
-};
+Task("Restore")
+  .IsDependentOn("RestoreCore")
+  .Does(() => {
+    if (packageServer == defaultChocolateyServer) {
+      var settings = new DockerComposeUpSettings {
+        DetachedMode = true
+      };
+      var services = new [] { "chocolatey-server" };
+      DockerComposeUp(settings, services);
+    }
+  });
 
 Task("Build")
   .IsDependentOn("Restore")
   .Does(() => {
-    var pushSettings = new ChocolateyPushSettings {
-      Source = packageRegistryPush
-    };
-    ChocolateyPush(GetFiles(workDirectory.Path + $"/**/{packageName}.{packageVersion}.nupkg"), pushSettings);
   });
 
 Task("Test")
   .IsDependentOn("Build")
   .Does(() => {
-    var installSettings = new ChocolateyInstallSettings {
-      // Debug = true,
-      // Verbose = true,
-      WorkingDirectory = workDirectory,
-      Source = packageRegistryPull,
-      Version = packageVersion,
-      Prerelease = !string.IsNullOrEmpty(sourceSemVer.Prerelease)
-    };
-    ChocolateyInstall(packageName, installSettings);
-
-    var uninstallSettings = new ChocolateyUninstallSettings {
-    };
-    ChocolateyUninstall(packageName, uninstallSettings);
+    {
+      var settings = new DockerComposeRunSettings {
+        Entrypoint = "powershell -File ./build/docker/chocolatey.package.install.ps1",
+      };
+      var service = "chocolatey";
+      var command = $"{packageVersion}";
+      DockerComposeRun(settings, service, command);
+    }
   });
 
 Task("Package")
@@ -45,6 +38,12 @@ Task("Package")
 Task("Publish")
   .IsDependentOn("Package")
   .Does(() => {
+    var settings = new DockerComposeRunSettings {
+      Entrypoint = "powershell -File ./build/docker/chocolatey.package.push.ps1",
+    };
+    var service = "chocolatey";
+    var command = $"{packageVersion}";
+    DockerComposeRun(settings, service, command);
   });
 
 RunTarget(target);

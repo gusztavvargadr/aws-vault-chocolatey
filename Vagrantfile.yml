@@ -1,9 +1,5 @@
-stack: chocolatey
-service: aws-vault
-component: pipeline
-
 machines:
-  agent:
+  workstation:
     providers:
       virtualbox:
         memory: 2048
@@ -11,11 +7,11 @@ machines:
       hyperv:
         memory: 2048
         cpus: 2
+
     provisioners:
-      shell-init-dotnet-sdk:
+      shell-dotnet-sdk-init:
         inline: |
-          choco install dotnetcore-sdk --version 3.1.100 --yes --no-progress
-      shell-init-dotnet-tools:
+          choco install dotnetcore-sdk --confirm --version 2.1.607 --no-progress
+      shell-dotnet-tool-init:
         inline: |
-          dotnet tool install Cake.Tool --global --version 0.33.0
-          dotnet tool install GitVersion.Tool --global --version 4.0.1-beta1-65
+          dotnet tool install Cake.Tool --global --version 0.35.0

@@ -1,8 +1,40 @@
 version: '3'
 
 services:
-  registry:
+  gitversion:
     build:
-      context: ./build/registry
+      context: ./build/docker/
+      dockerfile: ./gitversion.Dockerfile
+
+    volumes:
+      - ${REPO_DIR}:C:/opt/gitversion/
+
+    command: /showvariable NuGetVersionV2
+
+  chocolatey-server:
+    build:
+      context: ./build/docker/
+      dockerfile: ./chocolatey-server.Dockerfile
+
     ports:
-    - "5000:80"
+      - '5000:80'
+
+  chef-client:
+    build:
+      context: ./build/docker/
+      dockerfile: ./chef-client.Dockerfile
+
+    volumes:
+      - ${REPO_DIR}:C:/opt/chef/
+
+  chocolatey:
+    build:
+      context: ./build/docker/
+      dockerfile: ./chocolatey.Dockerfile
+
+    volumes:
+      - ${REPO_DIR}:C:/opt/chocolatey/
+
+    environment:
+      CHOCOLATEY_SERVER:
+      CHOCOLATEY_API_KEY:

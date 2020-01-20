@@ -1,0 +1,11 @@
+steps:
+  - checkout: self
+    submodules: recursive
+
+  - script: |
+      dotnet --info
+
+      dotnet tool install Cake.Tool --global --version 0.35.0
+
+      dotnet tool list --global
+    displayName: Initialize .NET

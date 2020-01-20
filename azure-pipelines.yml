@@ -1,29 +1,47 @@
+trigger:
+  branches:
+    include:
+      - '*'
+  tags:
+    include:
+      - '*'
 pr: none
 
+variables:
+  - group: pipeline
+
 stages:
-- stage: build
-  displayName: Build
-  variables:
-  - group: version-latest
+  - stage: commit
+    displayName: Commit
 
-  jobs:
-  - template: build/azure-pipelines.build.yml
+    jobs:
+      - template: ./build/azp/azure-pipelines.build.yml
 
-- stage: deployLocalhost
-  displayName: Deploy - localhost
-  variables:
-  - group: chocolatey-source-localhost
-  - group: version-latest
+  - stage: acceptance
+    displayName: Acceptance
 
-  jobs:
-  - template: build/azure-pipelines.deploy.yml
+    variables:
+      - group: stage-acceptance
 
-- stage: deployChocolateyOrg
-  displayName: Deploy - chocolatey.org
-  variables:
-  - group: chocolatey-source-chocolateyorg
-  - group: version-latest
-  condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
+    jobs:
+      - template: ./build/azp/azure-pipelines.deploy.yml
 
-  jobs:
-  - template: build/azure-pipelines.deploy.yml
+  - stage: staging
+    displayName: Staging
+    condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/master'), startsWith(variables['Build.SourceBranch'], 'refs/tags/')))
+
+    variables:
+      - group: stage-staging
+
+    jobs:
+      - template: ./build/azp/azure-pipelines.deploy.yml
+
+  - stage: production
+    displayName: Production
+    condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
+
+    variables:
+      - group: stage-production
+
+    jobs:
+      - template: ./build/azp/azure-pipelines.deploy.yml
