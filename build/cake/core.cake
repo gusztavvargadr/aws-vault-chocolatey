@@ -16,7 +16,7 @@ var chocolateyServer = EnvironmentVariable("CHOCOLATEY_SERVER", defaultChocolate
 
 var packageServer = Argument("package-server", string.Empty);
 if (string.IsNullOrEmpty(packageServer)) {
-  packageServer = defaultChocolateyServer;
+  packageServer = chocolateyServer;
 }
 
 Task("Init")
