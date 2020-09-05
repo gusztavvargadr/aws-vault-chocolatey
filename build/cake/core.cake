@@ -21,8 +21,11 @@ if (string.IsNullOrEmpty(packageServer)) {
 
 Task("Init")
   .Does(() => {
-    StartProcess("docker", "version");
-    StartProcess("docker-compose", "version");
+    StartProcess("docker", "--version");
+    StartProcess("docker-compose", "--version");
+
+    StartProcess("docker", "image ls -a");
+    StartProcess("docker", "container ls -a");
   });
 
 Task("Version")
