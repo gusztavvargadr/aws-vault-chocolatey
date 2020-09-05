@@ -31,7 +31,8 @@ Task("Test")
       executablePath,
       new ProcessSettings {
         Arguments = "--version",
-        RedirectStandardOutput = true
+        RedirectStandardOutput = true,
+        RedirectStandardError = true,
       }
     )) {
       process.WaitForExit();
@@ -39,7 +40,7 @@ Task("Test")
         throw new Exception($"Error executing '{executablePath}': '{process.GetExitCode()}'.");
       }
 
-      var actualVersion = string.Join(Environment.NewLine, process.GetStandardOutput());
+      var actualVersion = string.Join(Environment.NewLine, process.GetStandardOutput().Concat(process.GetStandardError())).Trim();
       Information($"Actual version: '{actualVersion}'.");
       var expectedVersion = $"v{projectVersion}";
       Information($"Expected version: '{expectedVersion}'.");

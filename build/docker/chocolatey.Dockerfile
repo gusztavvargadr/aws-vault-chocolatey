@@ -1,1 +1,1 @@
-FROM gusztavvargadr/chocolatey-cli:windows-ltsc2019
+FROM gusztavvargadr/chocolatey-cli:windows
