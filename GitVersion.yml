@@ -1,12 +1,18 @@
 mode: ContinuousDeployment
+next-version: "6.0.0"
+
 branches:
   master:
-    tag: rc
-    increment: minor
+    tag: b
+    increment: Minor
+
   feature:
-    tag: rc-{BranchName}
-    increment: minor
-  release:
-    tag: rc
+    tag: a-{BranchName}
+    increment: Minor
+
   hotfix:
+    tag: a-{BranchName}
+    increment: Patch
+
+  release:
     tag: rc

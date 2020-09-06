@@ -8,9 +8,9 @@ This repository contains the source of the [Chocolatey package] for [AWS Vault] 
 
 ### Overview
 
-AWS Vault is a tool to securely store and access AWS credentials in a development environment.
-
-AWS Vault stores IAM credentials in your operating system's secure keystore and then generates temporary credentials from those to expose to your shell and applications. It's designed to be complementary to the AWS CLI tools, and is aware of your profiles and configuration in `~/.aws/config`.
+> AWS Vault is a tool to securely store and access AWS credentials in a development environment.
+> 
+> AWS Vault stores IAM credentials in your operating system's secure keystore and then generates temporary credentials from those to expose to your shell and applications. It's designed to be complementary to the AWS CLI tools, and is aware of your profiles and configuration in ~/.aws/config.
 
 For more information please see [the original repository][AWS Vault].
 

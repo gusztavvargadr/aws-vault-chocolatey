@@ -1,1 +1,1 @@
-FROM gusztavvargadr/chef-client:windows-ltsc2019
+FROM gusztavvargadr/chef-client:windows

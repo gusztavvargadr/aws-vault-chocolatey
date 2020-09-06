@@ -2,10 +2,14 @@ steps:
   - checkout: self
     submodules: recursive
 
-  - script: |
-      dotnet --info
+  - task: UseDotNet@2
+    displayName: Initialize .NET CLI
+    inputs:
+      version: "3.1.x"
 
-      dotnet tool install Cake.Tool --global --version 0.35.0
-
-      dotnet tool list --global
-    displayName: Initialize .NET
+  - task: DotNetCoreCLI@2
+    displayName: Initialize .NET Tool Cake
+    inputs:
+      command: custom
+      custom: tool
+      arguments: install Cake.Tool --global --version 0.35.0
