@@ -9,11 +9,11 @@ jobs:
       - template: azure-pipelines.core.yml
 
       - script: |
-          dotnet cake build.cake --target=publish --project-version=$(project-version) --package-version=$(package-version)
+          dotnet cake build.cake --target=publish
         displayName: Publish Cake
 
       - script: |
-          dotnet cake build.cake --target=clean --project-version=$(project-version) --package-version=$(package-version)
+          dotnet cake build.cake --target=clean
         displayName: Clean Cake
         condition: always()
 
