@@ -1,5 +1,6 @@
 steps:
   - checkout: self
+    clean: true
     submodules: recursive
 
   - task: UseDotNet@2
