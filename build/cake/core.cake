@@ -8,7 +8,7 @@ var packageName = "aws-vault";
 var sourceVersion = Argument("source-version", string.Empty);
 Semver.SemVersion sourceSemVer;
 var buildVersion = Argument("build-version", string.Empty);
-var projectVersion = Argument("project-version", string.Empty);
+var projectVersion = Argument("project-version", "6.0.1");
 var packageVersion = Argument("package-version", string.Empty);
 
 var defaultChocolateyServer = "http://chocolatey-server/chocolatey";
