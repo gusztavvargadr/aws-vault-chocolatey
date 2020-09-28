@@ -3,7 +3,9 @@ jobs:
     displayName: Build
 
     pool:
-      vmImage: windows-2019
+      name: Default
+      demands:
+        - AZP_AGENT_DOCKER_WINDOWS
 
     steps:
       - template: azure-pipelines.core.yml
