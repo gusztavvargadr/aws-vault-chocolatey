@@ -7,5 +7,5 @@ steps:
       dotnet --info
       dotnet tool list --global
 
-      dotnet tool install Cake.Tool --global
+      dotnet-cake
     displayName: Init .NET
