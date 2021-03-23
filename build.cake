@@ -1,7 +1,7 @@
 #load ./build/cake/core.cake
 
 Task("Build")
-  .IsDependentOn("Restore")
+  .IsDependentOn("Version")
   .Does(() => {
     var settings = new DockerComposeRunSettings {
       Entrypoint = "powershell -File ./build/docker/chef-client.cookbook.run.ps1",

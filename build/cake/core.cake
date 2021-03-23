@@ -22,8 +22,17 @@ Task("Init")
     StartProcess("docker", "container ls -a");
   });
 
-Task("Version")
+Task("Restore")
   .IsDependentOn("Init")
+  .Does(() => {
+    var settings = new DockerComposeBuildSettings {
+    };
+    var services = new [] { "gitversion", "chef-client", "chocolatey" };
+    DockerComposeBuild(settings, services);
+  });
+
+Task("Version")
+  .IsDependentOn("Restore")
   .Does((context) => {
     if (string.IsNullOrEmpty(sourceVersion)) {
       {
@@ -73,17 +82,8 @@ Task("Version")
     Information($"Package version: '{packageVersion}'.");
   });
 
-Task("Restore")
-  .IsDependentOn("Version")
-  .Does(() => {
-    var settings = new DockerComposeBuildSettings {
-    };
-    var services = new [] { "gitversion", "chef-client", "chocolatey" };
-    DockerComposeBuild(settings, services);
-  });
-
 Task("Clean")
-  .IsDependentOn("Version")
+  .IsDependentOn("Init")
   .Does(() => {
     var settings = new DockerComposeDownSettings {
       Rmi = "local",

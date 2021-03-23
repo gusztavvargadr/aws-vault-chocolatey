@@ -1,7 +1,7 @@
 #load ./build/cake/core.cake
 
 Task("Build")
-  .IsDependentOn("Restore")
+  .IsDependentOn("Version")
   .Does(() => {
   });
 
