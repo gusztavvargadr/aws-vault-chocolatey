@@ -11,13 +11,7 @@ var buildVersion = Argument("build-version", string.Empty);
 var projectVersion = Argument("project-version", "6.3.0");
 var packageVersion = Argument("package-version", string.Empty);
 
-var defaultChocolateyServer = "http://chocolatey-server/chocolatey";
-var chocolateyServer = EnvironmentVariable("CHOCOLATEY_SERVER", defaultChocolateyServer);
-
-var packageServer = Argument("package-server", string.Empty);
-if (string.IsNullOrEmpty(packageServer)) {
-  packageServer = chocolateyServer;
-}
+var chocolateyServer = EnvironmentVariable("CHOCOLATEY_SERVER", string.Empty);
 
 Task("Init")
   .Does(() => {
@@ -79,12 +73,12 @@ Task("Version")
     Information($"Package version: '{packageVersion}'.");
   });
 
-Task("RestoreCore")
+Task("Restore")
   .IsDependentOn("Version")
   .Does(() => {
     var settings = new DockerComposeBuildSettings {
     };
-    var services = new [] { "chocolatey" };
+    var services = new [] { "gitversion", "chef-client", "chocolatey" };
     DockerComposeBuild(settings, services);
   });
 
@@ -92,7 +86,8 @@ Task("Clean")
   .IsDependentOn("Version")
   .Does(() => {
     var settings = new DockerComposeDownSettings {
-      Rmi = "all"
+      Rmi = "local",
+      Volumes = true,
     };
     DockerComposeDown(settings);
   });

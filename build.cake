@@ -1,14 +1,5 @@
 #load ./build/cake/core.cake
 
-Task("Restore")
-  .IsDependentOn("RestoreCore")
-  .Does(() => {
-    var settings = new DockerComposeBuildSettings {
-    };
-    var services = new [] { "chef-client" };
-    DockerComposeBuild(settings, services);
-  });
-
 Task("Build")
   .IsDependentOn("Restore")
   .Does(() => {

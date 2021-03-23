@@ -1,5 +1,8 @@
-FROM gittools/gitversion:5.1.3-windows
+FROM mcr.microsoft.com/dotnet/sdk:3.1
 
-WORKDIR C:/opt/gitversion/
+WORKDIR C:/opt/docker/work/
 
-CMD [ "/h" ]
+RUN setx PATH "%PATH%;C:\Users\ContainerUser\.dotnet\tools"
+RUN dotnet tool install gitversion.tool --global
+
+ENTRYPOINT [ "dotnet", "gitversion" ]

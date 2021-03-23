@@ -1,17 +1,5 @@
 #load ./build/cake/core.cake
 
-Task("Restore")
-  .IsDependentOn("RestoreCore")
-  .Does(() => {
-    if (packageServer == defaultChocolateyServer) {
-      var settings = new DockerComposeUpSettings {
-        DetachedMode = true
-      };
-      var services = new [] { "chocolatey-server" };
-      DockerComposeUp(settings, services);
-    }
-  });
-
 Task("Build")
   .IsDependentOn("Restore")
   .Does(() => {
@@ -38,6 +26,10 @@ Task("Package")
 Task("Publish")
   .IsDependentOn("Package")
   .Does(() => {
+    if (string.IsNullOrEmpty(chocolateyServer)) {
+      return;
+    }
+
     var settings = new DockerComposeRunSettings {
       Entrypoint = "powershell -File ./build/docker/chocolatey.package.push.ps1",
     };
