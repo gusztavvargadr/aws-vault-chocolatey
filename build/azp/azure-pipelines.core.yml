@@ -1,6 +1,6 @@
 steps:
   - checkout: self
-    clean: true
+    fetchDepth: 0
     submodules: recursive
 
   - script: |
