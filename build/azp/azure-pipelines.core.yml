@@ -2,3 +2,10 @@ steps:
   - checkout: self
     clean: true
     submodules: recursive
+
+  - script: |
+      dotnet --info
+      dotnet tool list --global
+
+      dotnet tool install Cake.Tool --global
+    displayName: Init .NET
