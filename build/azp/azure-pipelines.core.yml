@@ -6,6 +6,4 @@ steps:
   - script: |
       dotnet --info
       dotnet tool list --global
-
-      dotnet-cake
     displayName: Init .NET
