@@ -1,6 +1,5 @@
 steps:
   - checkout: self
-    clean: true
     submodules: recursive
 
   - script: |

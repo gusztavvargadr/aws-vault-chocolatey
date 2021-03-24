@@ -8,6 +8,9 @@ jobs:
         - AZP_AGENT_WINDOWS
         - AZP_AGENT_DOCKER
 
+    workspace:
+      clean: all
+
     steps:
       - template: azure-pipelines.core.yml
 
