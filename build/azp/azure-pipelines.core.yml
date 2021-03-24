@@ -3,7 +3,7 @@ steps:
     submodules: recursive
 
   - script: |
-      git switch $(branch)
+      git checkout $(branch)
     displayName: Init Git
 
   - script: |
