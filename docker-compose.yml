@@ -9,6 +9,9 @@ services:
     volumes:
       - ${REPO_DIR}:C:/opt/docker/work/
 
+    environment:
+      Git_Branch:
+
     command: /showvariable NuGetVersionV2
 
   chef-client:
