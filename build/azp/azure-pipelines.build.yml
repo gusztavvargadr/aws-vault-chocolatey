@@ -17,8 +17,6 @@ jobs:
       - script: |
           dotnet cake build.cake --target=publish
         displayName: Publish Cake
-        env:
-          Git_Branch: $(Build.SourceBranch)
 
       - publish: $(Build.SourcesDirectory)/artifacts/chocolatey/
         displayName: Publish Chocolatey Artifacts
