@@ -1,7 +1,11 @@
 steps:
   - checkout: self
-    fetchDepth: 0
+    clean: true
     submodules: recursive
+
+  - script: |
+      git switch -
+    displayName: Init Git
 
   - script: |
       dotnet --info
