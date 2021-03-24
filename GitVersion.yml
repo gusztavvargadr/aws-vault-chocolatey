@@ -2,16 +2,13 @@ mode: ContinuousDeployment
 
 branches:
   master:
-    tag: b
+    tag: rc
     increment: Minor
 
   feature:
-    tag: a-{BranchName}
+    tag: rc-{BranchName}
     increment: Minor
 
   hotfix:
-    tag: a-{BranchName}
+    tag: rc-{BranchName}
     increment: Patch
-
-  release:
-    tag: rc
