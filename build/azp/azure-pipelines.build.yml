@@ -5,7 +5,11 @@ jobs:
     pool:
       name: Default
       demands:
-        - AZP_AGENT_DOCKER_WINDOWS
+        - AZP_AGENT_WINDOWS
+        - AZP_AGENT_DOCKER
+
+    workspace:
+      clean: all
 
     steps:
       - template: azure-pipelines.core.yml
@@ -14,12 +18,12 @@ jobs:
           dotnet cake build.cake --target=publish
         displayName: Publish Cake
 
-      - script: |
-          dotnet cake build.cake --target=clean
-        displayName: Clean Cake
-        condition: always()
-
       - publish: $(Build.SourcesDirectory)/artifacts/chocolatey/
         displayName: Publish Chocolatey Artifacts
         condition: always()
         artifact: build-chocolatey
+
+      - script: |
+          dotnet cake build.cake --target=clean
+        displayName: Clean Cake
+        condition: always()

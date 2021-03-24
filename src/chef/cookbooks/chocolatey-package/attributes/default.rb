@@ -5,5 +5,5 @@ default['chocolatey-package'] = {
   'project-version' => ENV['CHOCOLATEY_PROJECT_VERSION'],
   'package-source-url' => 'https://github.com/gusztavvargadr/aws-vault-chocolatey/',
   'package-version' => ENV['CHOCOLATEY_PACKAGE_VERSION'],
-  'directory-path' => 'C:/opt/chef/artifacts/chocolatey/packages/',
+  'directory-path' => 'C:/opt/docker/work/artifacts/chocolatey/packages/',
 }

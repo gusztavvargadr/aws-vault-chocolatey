@@ -8,16 +8,10 @@ var packageName = "aws-vault";
 var sourceVersion = Argument("source-version", string.Empty);
 Semver.SemVersion sourceSemVer;
 var buildVersion = Argument("build-version", string.Empty);
-var projectVersion = Argument("project-version", "6.2.0");
+var projectVersion = Argument("project-version", "6.3.0");
 var packageVersion = Argument("package-version", string.Empty);
 
-var defaultChocolateyServer = "http://chocolatey-server/chocolatey";
-var chocolateyServer = EnvironmentVariable("CHOCOLATEY_SERVER", defaultChocolateyServer);
-
-var packageServer = Argument("package-server", string.Empty);
-if (string.IsNullOrEmpty(packageServer)) {
-  packageServer = chocolateyServer;
-}
+var chocolateyServer = EnvironmentVariable("CHOCOLATEY_SERVER", string.Empty);
 
 Task("Init")
   .Does(() => {
@@ -28,8 +22,17 @@ Task("Init")
     StartProcess("docker", "container ls -a");
   });
 
-Task("Version")
+Task("Restore")
   .IsDependentOn("Init")
+  .Does(() => {
+    var settings = new DockerComposeBuildSettings {
+    };
+    var services = new [] { "gitversion", "chef-client", "chocolatey" };
+    DockerComposeBuild(settings, services);
+  });
+
+Task("Version")
+  .IsDependentOn("Restore")
   .Does((context) => {
     if (string.IsNullOrEmpty(sourceVersion)) {
       {
@@ -79,20 +82,14 @@ Task("Version")
     Information($"Package version: '{packageVersion}'.");
   });
 
-Task("RestoreCore")
-  .IsDependentOn("Version")
-  .Does(() => {
-    var settings = new DockerComposeBuildSettings {
-    };
-    var services = new [] { "chocolatey" };
-    DockerComposeBuild(settings, services);
-  });
-
 Task("Clean")
-  .IsDependentOn("Version")
+  .IsDependentOn("Init")
   .Does(() => {
     var settings = new DockerComposeDownSettings {
-      Rmi = "all"
+      Rmi = "local",
+      Volumes = true,
     };
     DockerComposeDown(settings);
+
+    CleanDirectory("./artifacts/");
   });

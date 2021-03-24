@@ -9,6 +9,8 @@ pr: none
 
 variables:
   - group: pipeline
+  - name: branch
+    value: $[ replace(replace(variables['Build.SourceBranch'], 'refs/heads/', ''), 'refs/tags', '') ]
 
 stages:
   - stage: commit
@@ -29,22 +31,12 @@ stages:
     jobs:
       - template: ./build/azp/azure-pipelines.deploy.yml
 
-  - stage: staging
-    displayName: Staging
-    condition: and(succeeded(), or(startsWith(variables['Build.SourceBranch'], 'refs/heads/master'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release/'), startsWith(variables['Build.SourceBranch'], 'refs/tags/')))
-
-    variables:
-      - group: stage-staging
-
-    jobs:
-      - template: ./build/azp/azure-pipelines.deploy.yml
-
-  - stage: production
-    displayName: Production
+  - stage: release
+    displayName: Release
     condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
 
     variables:
-      - group: stage-production
+      - group: stage-release
 
     jobs:
       - template: ./build/azp/azure-pipelines.deploy.yml

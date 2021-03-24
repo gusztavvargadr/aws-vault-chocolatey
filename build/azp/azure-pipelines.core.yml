@@ -1,4 +1,12 @@
 steps:
   - checkout: self
-    clean: true
     submodules: recursive
+
+  - script: |
+      git switch $(branch)
+    displayName: Init Git
+
+  - script: |
+      dotnet --info
+      dotnet tool list --global
+    displayName: Init .NET

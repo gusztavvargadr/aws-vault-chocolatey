@@ -1,1 +1,3 @@
-FROM gusztavvargadr/chocolatey-cli:windows
+FROM gusztavvargadr/chef-core:windows
+
+WORKDIR C:/opt/docker/work/
