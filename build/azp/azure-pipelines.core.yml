@@ -3,6 +3,10 @@ steps:
     submodules: recursive
 
   - script: |
+      git switch $(Build.SourceBranch)
+    displayName: Init Git
+
+  - script: |
       dotnet --info
       dotnet tool list --global
     displayName: Init .NET
