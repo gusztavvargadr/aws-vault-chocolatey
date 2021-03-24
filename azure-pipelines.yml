@@ -10,7 +10,7 @@ pr: none
 variables:
   - group: pipeline
   - name: branch
-    value: $[ replace(variables['Build.SourceBranch'], 'refs/heads/', '') ]
+    value: $[ replace(replace(variables['Build.SourceBranch'], 'refs/heads/', ''), 'refs/tags', '') ]
 
 stages:
   - stage: commit
