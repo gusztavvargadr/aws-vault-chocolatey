@@ -26,8 +26,6 @@ Task("Package")
 Task("Publish")
   .IsDependentOn("Package")
   .Does(() => {
-    Information($"ChocolateyServer: '{chocolateyServer}'.");
-
     if (string.IsNullOrEmpty(chocolateyServer)) {
       return;
     }
