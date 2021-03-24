@@ -90,4 +90,6 @@ Task("Clean")
       Volumes = true,
     };
     DockerComposeDown(settings);
+
+    CleanDirectory("./artifacts/");
   });
