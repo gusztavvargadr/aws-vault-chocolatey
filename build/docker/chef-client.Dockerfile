@@ -1,1 +1,1 @@
-FROM gusztavvargadr/chef-client:windows
+FROM gusztavvargadr/chef-client:latest
