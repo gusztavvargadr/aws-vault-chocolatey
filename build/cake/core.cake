@@ -8,7 +8,7 @@ var packageName = "aws-vault";
 var sourceVersion = Argument("source-version", string.Empty);
 Semver.SemVersion sourceSemVer;
 var buildVersion = Argument("build-version", string.Empty);
-var projectVersion = Argument("project-version", "6.6.0");
+var projectVersion = Argument("project-version", "6.6.1");
 var packageVersion = Argument("package-version", string.Empty);
 
 var chocolateyServer = EnvironmentVariable("CHOCOLATEY_SERVER", string.Empty);
