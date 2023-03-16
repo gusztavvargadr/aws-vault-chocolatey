@@ -1,4 +1,4 @@
-#addin nuget:?package=Cake.Docker&version=0.11.0
+#addin nuget:?package=Cake.Docker&version=1.1.2
 #addin nuget:?package=Cake.SemVer&version=4.0.0
 #addin nuget:?package=semver&version=2.0.4
 
@@ -18,8 +18,9 @@ Task("Init")
     StartProcess("docker", "--version");
     StartProcess("docker-compose", "--version");
 
-    StartProcess("docker", "image ls -a");
+    StartProcess("docker", "system df");
     StartProcess("docker", "container ls -a");
+    StartProcess("docker", "image ls -a");
   });
 
 Task("Restore")
@@ -85,11 +86,16 @@ Task("Version")
 Task("Clean")
   .IsDependentOn("Init")
   .Does(() => {
+    StartProcess("docker", "container prune -f");
+
     var settings = new DockerComposeDownSettings {
       Rmi = "local",
       Volumes = true,
     };
     DockerComposeDown(settings);
+
+    StartProcess("docker", "image prune -f");
+    StartProcess("docker", "builder prune -af");
 
     CleanDirectory("./artifacts/");
   });
