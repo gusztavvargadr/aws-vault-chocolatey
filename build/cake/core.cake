@@ -5,10 +5,10 @@
 var target = Argument("target", "Publish");
 var packageName = "aws-vault";
 
-var sourceVersion = Argument("source-version", string.Empty);
+var sourceVersion = Argument("source-version", "6.6.1");
 Semver.SemVersion sourceSemVer;
 var buildVersion = Argument("build-version", string.Empty);
-var projectVersion = Argument("project-version", "6.6.1");
+var projectVersion = Argument("project-version", string.Empty);
 var packageVersion = Argument("package-version", string.Empty);
 
 var chocolateyServer = EnvironmentVariable("CHOCOLATEY_SERVER", string.Empty);
@@ -28,7 +28,10 @@ Task("Restore")
   .Does(() => {
     var settings = new DockerComposeBuildSettings {
     };
-    var services = new [] { "gitversion", "chef-client", "chocolatey" };
+    var services = new [] { "chef-client", "chocolatey" };
+    if (string.IsNullOrEmpty(sourceVersion)) {
+      services = (new [] { "gitversion" }).Concat(services).ToArray();
+    }
     DockerComposeBuild(settings, services);
   });
 
