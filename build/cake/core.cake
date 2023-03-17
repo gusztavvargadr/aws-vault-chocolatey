@@ -5,7 +5,7 @@
 var target = Argument("target", "Publish");
 var packageName = "aws-vault";
 
-var sourceVersion = Argument("source-version", "7.1.0");
+var sourceVersion = Argument("source-version", "7.1.1");
 Semver.SemVersion sourceSemVer;
 var buildVersion = Argument("build-version", string.Empty);
 var projectVersion = Argument("project-version", string.Empty);
