@@ -1,14 +1,14 @@
-#addin nuget:?package=Cake.Docker&version=0.11.0
+#addin nuget:?package=Cake.Docker&version=1.1.2
 #addin nuget:?package=Cake.SemVer&version=4.0.0
 #addin nuget:?package=semver&version=2.0.4
 
 var target = Argument("target", "Publish");
 var packageName = "aws-vault";
 
-var sourceVersion = Argument("source-version", string.Empty);
+var sourceVersion = Argument("source-version", "6.6.1");
 Semver.SemVersion sourceSemVer;
 var buildVersion = Argument("build-version", string.Empty);
-var projectVersion = Argument("project-version", "6.6.0");
+var projectVersion = Argument("project-version", string.Empty);
 var packageVersion = Argument("package-version", string.Empty);
 
 var chocolateyServer = EnvironmentVariable("CHOCOLATEY_SERVER", string.Empty);
@@ -18,8 +18,9 @@ Task("Init")
     StartProcess("docker", "--version");
     StartProcess("docker-compose", "--version");
 
-    StartProcess("docker", "image ls -a");
+    StartProcess("docker", "system df");
     StartProcess("docker", "container ls -a");
+    StartProcess("docker", "image ls -a");
   });
 
 Task("Restore")
@@ -27,7 +28,10 @@ Task("Restore")
   .Does(() => {
     var settings = new DockerComposeBuildSettings {
     };
-    var services = new [] { "gitversion", "chef-client", "chocolatey" };
+    var services = new [] { "chef-client", "chocolatey" };
+    if (string.IsNullOrEmpty(sourceVersion)) {
+      services = (new [] { "gitversion" }).Concat(services).ToArray();
+    }
     DockerComposeBuild(settings, services);
   });
 
@@ -85,11 +89,16 @@ Task("Version")
 Task("Clean")
   .IsDependentOn("Init")
   .Does(() => {
+    StartProcess("docker", "container prune -f");
+
     var settings = new DockerComposeDownSettings {
       Rmi = "local",
       Volumes = true,
     };
     DockerComposeDown(settings);
+
+    StartProcess("docker", "image prune -f");
+    StartProcess("docker", "builder prune -af");
 
     CleanDirectory("./artifacts/");
   });
