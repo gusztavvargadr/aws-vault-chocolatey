@@ -15,5 +15,5 @@ This repository contains the source of the [Chocolatey package] for [AWS Vault] 
 For more information please see [the original repository][AWS Vault].
 
 [Chocolatey package]: https://chocolatey.org/packages/aws-vault/
-[AWS Vault]: https://github.com/99designs/aws-vault/
-[99designs]: https://99designs.com/
+[AWS Vault]: https://github.com/ByteNess/aws-vault/
+[99designs]: https://99designs.com
