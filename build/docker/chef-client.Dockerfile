@@ -1,1 +1,1 @@
-FROM gusztavvargadr/chef-client:latest
+FROM gusztavvargadr/chef-client:windows-servercore-ltsc2022
