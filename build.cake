@@ -36,7 +36,7 @@ Task("Test")
 Task("Package")
   .IsDependentOn("Test")
   .Does(() => {
-    StartProcess("docker", $"compose run --entrypoint 'powershell -File ./build/docker/chocolatey.package.pack.ps1' chocolatey");
+    StartProcess("docker", $"compose run --entrypoint \"powershell -File ./build/docker/chocolatey.package.pack.ps1\" chocolatey");
   });
 
 Task("Publish")
