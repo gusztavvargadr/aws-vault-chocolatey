@@ -3,9 +3,7 @@ jobs:
     displayName: Deploy
 
     pool:
-      name: Default
-      demands:
-        - VSTS_AGENT_CAP_OS -equals windows
+      vmImage: windows-2022
 
     workspace:
       clean: all
