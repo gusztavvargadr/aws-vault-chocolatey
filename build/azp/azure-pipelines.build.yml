@@ -3,7 +3,9 @@ jobs:
     displayName: Build
 
     pool:
-      vmImage: windows-2022
+      name: Default
+      demands:
+        - Agent.OS -equals Windows_NT
 
     workspace:
       clean: all
