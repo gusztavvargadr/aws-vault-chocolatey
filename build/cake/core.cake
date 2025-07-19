@@ -11,7 +11,7 @@ var chocolateyServer = EnvironmentVariable("CHOCOLATEY_SERVER", string.Empty);
 Task("Init")
   .Does(() => {
     StartProcess("docker", "--version");
-    StartProcess("docker", "compose --version");
+    StartProcess("docker", "compose version");
 
     StartProcess("docker", "system df");
     StartProcess("docker", "container ls -a");
