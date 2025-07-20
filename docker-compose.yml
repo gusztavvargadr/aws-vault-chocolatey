@@ -1,16 +1,4 @@
-version: "3"
-
 services:
-  gitversion:
-    build:
-      context: ./build/docker/
-      dockerfile: ./gitversion.Dockerfile
-
-    volumes:
-      - ${REPO_DIR}:C:/opt/docker/work/
-
-    command: /showvariable NuGetVersionV2
-
   chef-client:
     build:
       context: ./build/docker/

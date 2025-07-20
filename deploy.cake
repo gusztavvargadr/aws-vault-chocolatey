@@ -8,14 +8,7 @@ Task("Build")
 Task("Test")
   .IsDependentOn("Build")
   .Does(() => {
-    {
-      var settings = new DockerComposeRunSettings {
-        Entrypoint = "powershell -File ./build/docker/chocolatey.package.install.ps1",
-      };
-      var service = "chocolatey";
-      var command = $"{packageVersion}";
-      DockerComposeRun(settings, service, command);
-    }
+    StartProcess("docker", $"compose run --entrypoint \"powershell -File ./build/docker/chocolatey.package.install.ps1\" chocolatey {packageVersion}");
   });
 
 Task("Package")
@@ -30,12 +23,7 @@ Task("Publish")
       return;
     }
 
-    var settings = new DockerComposeRunSettings {
-      Entrypoint = "powershell -File ./build/docker/chocolatey.package.push.ps1",
-    };
-    var service = "chocolatey";
-    var command = $"{packageVersion}";
-    DockerComposeRun(settings, service, command);
+    StartProcess("docker", $"compose run --entrypoint \"powershell -File ./build/docker/chocolatey.package.push.ps1\" chocolatey {packageVersion}");
   });
 
 RunTarget(target);

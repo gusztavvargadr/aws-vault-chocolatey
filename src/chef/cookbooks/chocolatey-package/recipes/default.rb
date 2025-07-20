@@ -6,7 +6,7 @@ package_source_url = node['chocolatey-package']['package-source-url']
 package_version = node['chocolatey-package']['package-version']
 directory_path = "#{node['chocolatey-package']['directory-path']}#{id}/"
 
-project_download_url = "#{project_source_url}releases/download/v#{project_version}/#{id}-windows-386.exe"
+project_download_url = "#{project_source_url}releases/download/v#{project_version}/#{id}-windows-amd64.exe"
 project_download_path = "#{directory_path}tools/#{id}.exe"
 project_download_hash_md5 = ''
 project_download_hash_sha256 = ''

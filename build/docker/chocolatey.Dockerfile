@@ -1,3 +1,3 @@
-FROM gusztavvargadr/chef-core:latest
+FROM gusztavvargadr/chef-core:windows-servercore-ltsc2022
 
 WORKDIR C:/opt/docker/work/

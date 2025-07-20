@@ -4,7 +4,7 @@
 [![GitHub latest release](https://img.shields.io/github/release/gusztavvargadr/aws-vault-chocolatey.svg)](https://github.com/gusztavvargadr/aws-vault-chocolatey/releases/latest/)
 [![Chocolatey downloads](https://img.shields.io/chocolatey/dt/aws-vault.svg)](https://chocolatey.org/packages/aws-vault/)
 
-This repository contains the source of the [Chocolatey package] for [AWS Vault] by [99designs].
+This repository contains the source of the [Chocolatey package] for [AWS Vault] by [ByteNess].
 
 ### Overview
 
@@ -15,5 +15,5 @@ This repository contains the source of the [Chocolatey package] for [AWS Vault] 
 For more information please see [the original repository][AWS Vault].
 
 [Chocolatey package]: https://chocolatey.org/packages/aws-vault/
-[AWS Vault]: https://github.com/99designs/aws-vault/
-[99designs]: https://99designs.com/
+[AWS Vault]: https://github.com/ByteNess/aws-vault/
+[ByteNess]:  https://github.com/ByteNess/
