@@ -36,7 +36,7 @@ stages:
 
   - stage: release
     displayName: Release
-    condition: variables.isReleaseEnabled
+    condition: eq(variables.isReleaseEnabled, true)
 
     variables:
       - group: stage-release
