@@ -49,6 +49,8 @@ Task("Version")
 Task("Clean")
   .IsDependentOn("Init")
   .Does(() => {
+    StartProcess("docker", "container prune -f");
+
     StartProcess("docker", "compose down --rmi local --volumes");
 
     StartProcess("docker", "image prune -f");
