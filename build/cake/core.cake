@@ -21,7 +21,8 @@ Task("Init")
 Task("Restore")
   .IsDependentOn("Init")
   .Does(() => {
-    StartProcess("docker", "compose build chef-client chocolatey");
+    StartProcess("docker", "compose build chocolatey");
+    StartProcess("docker", "compose build chef-client");
   });
 
 Task("Version")

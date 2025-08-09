@@ -3,7 +3,7 @@
 Task("Build")
   .IsDependentOn("Version")
   .Does(() => {
-    StartProcess("docker", $"compose run --env \"CHOCOLATEY_PROJECT_VERSION={projectVersion}\" --env \"CHOCOLATEY_PACKAGE_VERSION={packageVersion}\" --entrypoint \"powershell -File ./build/docker/chef-client.cookbook.run.ps1\" chef-client");
+    StartProcess("docker", $"compose run --rm --env \"CHOCOLATEY_PROJECT_VERSION={projectVersion}\" --env \"CHOCOLATEY_PACKAGE_VERSION={packageVersion}\" --entrypoint \"powershell -File ./build/docker/chef-client.cookbook.run.ps1\" chef-client");
   });
 
 Task("Test")
@@ -36,7 +36,7 @@ Task("Test")
 Task("Package")
   .IsDependentOn("Test")
   .Does(() => {
-    StartProcess("docker", $"compose run --entrypoint \"powershell -File ./build/docker/chocolatey.package.pack.ps1\" chocolatey");
+    StartProcess("docker", $"compose run --rm --entrypoint \"powershell -File ./build/docker/chocolatey.package.pack.ps1\" chocolatey");
   });
 
 Task("Publish")
