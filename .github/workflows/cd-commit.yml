@@ -13,26 +13,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '8'
-
       - name: Init .NET
         run: |
-          dotnet --info
           dotnet tool restore
 
       - name: Publish Cake
         run: dotnet cake build.cake --target=publish
 
       - name: Upload Chocolatey Artifacts
-        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: build-chocolatey
           path: artifacts/chocolatey/
-
-      - name: Clean Cake
-        if: always()
-        run: dotnet cake build.cake --target=clean
