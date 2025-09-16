@@ -1,12 +1,4 @@
 services:
-  chef-client:
-    build:
-      context: ./build/docker/
-      dockerfile: ./chef-client.Dockerfile
-
-    volumes:
-      - ${REPO_DIR}:C:/opt/docker/work/
-
   chocolatey:
     build:
       context: ./build/docker/
