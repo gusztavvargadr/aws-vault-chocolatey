@@ -1,4 +1,4 @@
-name: CD Commit
+name: CD
 
 on:
   push:
@@ -7,8 +7,8 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
-    name: CD Commit Build
+  commit:
+    name: CD Commit
     runs-on: windows-2022
     steps:
       - name: Checkout repository
@@ -23,8 +23,27 @@ jobs:
       - name: Upload Chocolatey Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: build-chocolatey
+          name: commit-chocolatey
           path: artifacts/chocolatey/
 
       - name: Clean Cake
         run: dotnet cake build.cake --target clean
+
+  acceptance:
+    name: CD Acceptance
+    runs-on: windows-2022
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Init .NET
+        run: dotnet tool restore
+
+      - name: Download Chocolatey Artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Publish Cake
+        run: dotnet cake deploy.cake --target publish
+
+      - name: Clean Cake
+        run: dotnet cake deploy.cake --target clean
