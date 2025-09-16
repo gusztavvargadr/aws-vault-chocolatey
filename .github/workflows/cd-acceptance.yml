@@ -1,10 +1,9 @@
-name: CD Commit
+name: CD Acceptance
 
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+  workflow_run:
+    workflows: ["CD Commit"]
+    types: ["completed"]
 
 jobs:
   build:
@@ -17,14 +16,14 @@ jobs:
       - name: Init .NET
         run: dotnet tool restore
 
-      - name: Publish Cake
-        run: dotnet cake build.cake --target publish
-
-      - name: Upload Chocolatey Artifacts
-        uses: actions/upload-artifact@v4
+      - name: Download Chocolatey Artifacts
+        uses: actions/download-artifact@v4
         with:
           name: build-chocolatey
           path: artifacts/chocolatey/
+
+      - name: Publish Cake
+        run: dotnet cake deploy.cake --target publish
 
       - name: Clean Cake
         run: dotnet cake build.cake --target clean
