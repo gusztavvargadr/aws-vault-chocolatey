@@ -32,6 +32,7 @@ jobs:
   acceptance:
     name: CD Acceptance
     runs-on: windows-2022
+    needs: commit
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
