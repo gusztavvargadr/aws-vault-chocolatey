@@ -24,6 +24,7 @@ Task("Restore")
     StartProcess("docker", "compose build chocolatey");
 
     StartProcess("choco", "install -y chef-client --version 18.7.10.20250520 --no-progress");
+    Enivonment.SetEnvironmentVariable("CHEF_LICENSE", "accept-silent");
   });
 
 Task("Version")
