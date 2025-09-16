@@ -5,6 +5,7 @@ Task("Build")
   .Does(() => {
     Environment.SetEnvironmentVariable("CHOCOLATEY_PROJECT_VERSION", projectVersion);
     Environment.SetEnvironmentVariable("CHOCOLATEY_PACKAGE_VERSION", packageVersion);
+    Environment.SetEnvironmentVariable("ARTIFACTS_DIR", MakeAbsolute(Directory("./artifacts/")).FullPath);
 
     StartProcess("powershell", "-File ./build/chef/cookbook.run.ps1");
   });
