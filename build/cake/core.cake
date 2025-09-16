@@ -22,7 +22,8 @@ Task("Restore")
   .IsDependentOn("Init")
   .Does(() => {
     StartProcess("docker", "compose build chocolatey");
-    StartProcess("docker", "compose build chef-client");
+
+    StartProcess("choco", "install -y chef-client --version 18.7.10.20250520 --no-progress");
   });
 
 Task("Version")

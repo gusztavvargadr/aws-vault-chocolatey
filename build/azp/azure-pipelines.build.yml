@@ -14,15 +14,6 @@ jobs:
       - template: azure-pipelines.core.yml
 
       - script: |
-          dotnet cake build.cake --target=publish
-        displayName: Publish Cake
-
-      - publish: $(Build.SourcesDirectory)/artifacts/chocolatey/
-        displayName: Publish Chocolatey Artifacts
-        condition: always()
-        artifact: build-chocolatey
-
-      - script: |
-          dotnet cake build.cake --target=clean
+          dotnet cake build.cake --target clean
         displayName: Clean Cake
         condition: always()

@@ -19,7 +19,7 @@ jobs:
           dotnet tool restore
 
       - name: Publish Cake
-        run: dotnet cake build.cake --target=publish
+        run: dotnet cake build.cake --target version
 
       - name: Upload Chocolatey Artifacts
         uses: actions/upload-artifact@v4
