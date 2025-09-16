@@ -6,7 +6,7 @@ Task("Build")
     Environment.SetEnvironmentVariable("CHOCOLATEY_PROJECT_VERSION", projectVersion);
     Environment.SetEnvironmentVariable("CHOCOLATEY_PACKAGE_VERSION", packageVersion);
 
-    StartProcess("powershell", "-File ./build/docker/chef-client.cookbook.run.ps1");
+    StartProcess("powershell", "-File ./build/chef/cookbook.run.ps1");
   });
 
 Task("Test")
@@ -39,7 +39,7 @@ Task("Test")
 Task("Package")
   .IsDependentOn("Test")
   .Does(() => {
-    StartProcess("docker", $"compose run --rm --entrypoint \"powershell -File ./build/docker/chocolatey.package.pack.ps1\" chocolatey");
+    StartProcess("docker", $"compose run --rm --entrypoint \"powershell -File ./build/chocolatey/package.pack.ps1\" chocolatey");
   });
 
 Task("Publish")
