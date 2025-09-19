@@ -5,10 +5,11 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   commit:
-    name: CD Commit
+    name: Commit
     runs-on: windows-2022
     steps:
       - name: Checkout repository
@@ -30,7 +31,7 @@ jobs:
         run: dotnet cake build.cake --target clean
 
   acceptance:
-    name: CD Acceptance
+    name: Acceptance
     runs-on: windows-2022
     needs: commit
     steps:

@@ -1,5 +1,14 @@
 #load ./build/cake/core.cake
 
+Task("Init")
+  .IsDependentOn("CoreInit")
+  .Does(() => {
+    StartProcess("choco", "--version");
+
+    StartProcess("choco", "install -y chef-client --version 18.7.10.20250520 --no-progress");
+    Environment.SetEnvironmentVariable("CHEF_LICENSE", "accept-silent");
+  });
+
 Task("Build")
   .IsDependentOn("Version")
   .Does(() => {

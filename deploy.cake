@@ -1,5 +1,11 @@
 #load ./build/cake/core.cake
 
+Task("Init")
+  .IsDependentOn("CoreInit")
+  .Does(() => {
+    StartProcess("choco", "--version");
+  });
+
 Task("Build")
   .IsDependentOn("Version")
   .Does(() => {
