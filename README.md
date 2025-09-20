@@ -2,7 +2,7 @@
 
 [![Azure Pipelines latest build](https://dev.azure.com/gusztavvargadr/chocolatey/_apis/build/status/aws-vault?branchName=master)](https://dev.azure.com/gusztavvargadr/chocolatey/_build/latest?definitionId=6&branchName=master)
 [![GitHub latest release](https://img.shields.io/github/release/gusztavvargadr/aws-vault-chocolatey.svg)](https://github.com/gusztavvargadr/aws-vault-chocolatey/releases/latest/)
-[![Chocolatey downloads](https://img.shields.io/chocolatey/dt/aws-vault.svg)](https://chocolatey.org/packages/aws-vault/)
+[![Chocolatey downloads](https://img.shields.io/chocolatey/dt/aws-vault.svg)](https://chocolatey.org/packages/aws-vault)
 
 This repository contains the source of the [Chocolatey package] for [AWS Vault] by [ByteNess].
 
@@ -14,6 +14,6 @@ This repository contains the source of the [Chocolatey package] for [AWS Vault] 
 
 For more information please see [the original repository][AWS Vault].
 
-[Chocolatey package]: https://chocolatey.org/packages/aws-vault/
-[AWS Vault]: https://github.com/ByteNess/aws-vault/
-[ByteNess]:  https://github.com/ByteNess/
+[Chocolatey package]: https://chocolatey.org/packages/aws-vault
+[AWS Vault]: https://github.com/ByteNess/aws-vault
+[ByteNess]:  https://github.com/ByteNess
