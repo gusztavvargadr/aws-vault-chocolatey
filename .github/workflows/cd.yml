@@ -1,0 +1,51 @@
+name: CD
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  commit:
+    name: Commit
+    runs-on: windows-2022
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Init .NET
+        run: dotnet tool restore
+
+      - name: Publish Cake
+        run: dotnet cake build.cake --target publish
+
+      - name: Upload Chocolatey Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: commit-chocolatey
+          path: artifacts/chocolatey/
+
+      - name: Clean Cake
+        run: dotnet cake build.cake --target clean
+
+  acceptance:
+    name: Acceptance
+    runs-on: windows-2022
+    needs: commit
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Init .NET
+        run: dotnet tool restore
+
+      - name: Download Chocolatey Artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Publish Cake
+        run: dotnet cake deploy.cake --target publish
+
+      - name: Clean Cake
+        run: dotnet cake deploy.cake --target clean

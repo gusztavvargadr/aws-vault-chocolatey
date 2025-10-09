@@ -1,5 +1,11 @@
 #load ./build/cake/core.cake
 
+Task("Init")
+  .IsDependentOn("CoreInit")
+  .Does(() => {
+    StartProcess("choco", "--version");
+  });
+
 Task("Build")
   .IsDependentOn("Version")
   .Does(() => {
@@ -8,7 +14,7 @@ Task("Build")
 Task("Test")
   .IsDependentOn("Build")
   .Does(() => {
-    StartProcess("docker", $"compose run --entrypoint \"powershell -File ./build/docker/chocolatey.package.install.ps1\" chocolatey {packageVersion}");
+    StartProcess("docker", $"compose run --rm --entrypoint \"powershell -File ./build/chocolatey/package.install.ps1\" chocolatey {packageVersion}");
   });
 
 Task("Package")
@@ -23,7 +29,7 @@ Task("Publish")
       return;
     }
 
-    StartProcess("docker", $"compose run --entrypoint \"powershell -File ./build/docker/chocolatey.package.push.ps1\" chocolatey {packageVersion}");
+    StartProcess("docker", $"compose run --rm --entrypoint \"powershell -File ./build/chocolatey/package.push.ps1\" chocolatey {packageVersion}");
   });
 
 RunTarget(target);

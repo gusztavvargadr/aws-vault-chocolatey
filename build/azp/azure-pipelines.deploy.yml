@@ -13,20 +13,7 @@ jobs:
     steps:
       - template: azure-pipelines.core.yml
 
-      - task: DownloadPipelineArtifact@2
-        displayName: Download Chocolatey Artifacts
-        inputs:
-          artifact: build-chocolatey
-          path: $(Build.SourcesDirectory)/artifacts/chocolatey/
-
       - script: |
-          dotnet cake deploy.cake --target=publish
-        displayName: Publish Cake
-        env:
-          CHOCOLATEY_SERVER: $(chocolatey-server)
-          CHOCOLATEY_API_KEY: $(chocolatey-api-key)
-
-      - script: |
-          dotnet cake deploy.cake --target=clean
+          dotnet cake deploy.cake --target clean
         displayName: Clean Cake
         condition: always()
