@@ -6,6 +6,12 @@ on:
   pull_request:
     branches: [ main ]
   workflow_dispatch:
+    inputs:
+      publish:
+        description: 'Publish to Chocolatey'
+        required: false
+        default: false
+        type: boolean
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -22,8 +28,8 @@ jobs:
       - name: Init .NET
         run: dotnet tool restore
 
-      - name: Publish Cake
-        run: dotnet cake build.cake --target publish
+      - name: Package Cake
+        run: dotnet cake build.cake --target package
 
       - name: Upload Chocolatey Artifacts
         uses: actions/upload-artifact@v4
@@ -33,6 +39,7 @@ jobs:
 
       - name: Clean Cake
         run: dotnet cake build.cake --target clean
+        if: always()
 
   acceptance:
     name: Acceptance
@@ -50,11 +57,16 @@ jobs:
         with:
           name: commit-chocolatey
 
+      - name: Package Cake
+        run: dotnet cake deploy.cake --target package
+
       - name: Publish Cake
         env:
           CHOCOLATEY_SERVER: ${{ vars.CHOCOLATEY_SERVER }}
           CHOCOLATEY_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }}
-        run: dotnet cake deploy.cake --target publish
+        run: dotnet cake deploy.cake --target publish --exclusive
+        if: ${{ inputs.publish == true }}
 
       - name: Clean Cake
         run: dotnet cake deploy.cake --target clean
+        if: always()
