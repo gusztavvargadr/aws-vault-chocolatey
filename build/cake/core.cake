@@ -1,7 +1,7 @@
 var target = Argument("target", "Package");
 var packageName = "aws-vault";
 
-var sourceVersion = Argument("source-version", "7.7.8");
+var sourceVersion = Argument("source-version", "7.7.9");
 var buildVersion = Argument("build-version", string.Empty);
 var projectVersion = Argument("project-version", string.Empty);
 var packageVersion = Argument("package-version", string.Empty);
