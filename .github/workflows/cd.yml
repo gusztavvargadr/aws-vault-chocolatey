@@ -43,6 +43,8 @@ jobs:
 
       - name: Download Chocolatey Artifacts
         uses: actions/download-artifact@v4
+        with:
+          name: commit-chocolatey
 
       - name: Publish Cake
         run: dotnet cake deploy.cake --target publish
