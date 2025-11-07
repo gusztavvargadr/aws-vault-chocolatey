@@ -1,6 +1,6 @@
 # aws-vault-chocolatey
 
-[![Azure Pipelines latest build](https://dev.azure.com/gusztavvargadr/chocolatey/_apis/build/status/aws-vault?branchName=master)](https://dev.azure.com/gusztavvargadr/chocolatey/_build/latest?definitionId=6&branchName=master)
+[![GitHub Actions build](https://github.com/gusztavvargadr/aws-vault-chocolatey/actions/workflows/cd.yml/badge.svg)](https://github.com/gusztavvargadr/aws-vault-chocolatey/actions/workflows/cd.yml)
 [![GitHub latest release](https://img.shields.io/github/release/gusztavvargadr/aws-vault-chocolatey.svg)](https://github.com/gusztavvargadr/aws-vault-chocolatey/releases/latest/)
 [![Chocolatey downloads](https://img.shields.io/chocolatey/dt/aws-vault.svg)](https://chocolatey.org/packages/aws-vault)
 
