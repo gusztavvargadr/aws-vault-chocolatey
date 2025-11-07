@@ -56,7 +56,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: commit-chocolatey
-
+          path: artifacts/chocolatey/
       - name: Package Cake
         run: dotnet cake deploy.cake --target package
 
