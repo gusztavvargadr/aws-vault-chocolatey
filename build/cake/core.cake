@@ -1,4 +1,4 @@
-var target = Argument("target", "Publish");
+var target = Argument("target", "Package");
 var packageName = "aws-vault";
 
 var sourceVersion = Argument("source-version", "7.7.8");
