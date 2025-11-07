@@ -47,6 +47,9 @@ jobs:
           name: commit-chocolatey
 
       - name: Publish Cake
+        env:
+          CHOCOLATEY_SERVER: ${{ secrets.CHOCOLATEY_SERVER }}
+          CHOCOLATEY_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }}
         run: dotnet cake deploy.cake --target publish
 
       - name: Clean Cake
