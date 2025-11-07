@@ -7,3 +7,8 @@ steps:
 
       dotnet tool restore
     displayName: Init .NET
+
+  - script: |
+      dotnet cake build.cake --target version
+    displayName: Init Cake
+    condition: always()

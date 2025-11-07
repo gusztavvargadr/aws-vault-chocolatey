@@ -1,4 +1,4 @@
-var target = Argument("target", "Publish");
+var target = Argument("target", "Package");
 var packageName = "aws-vault";
 
 var sourceVersion = Argument("source-version", "7.7.8");
@@ -8,7 +8,7 @@ var packageVersion = Argument("package-version", string.Empty);
 
 var chocolateyServer = EnvironmentVariable("CHOCOLATEY_SERVER", string.Empty);
 
-Task("Init")
+Task("CoreInit")
   .Does(() => {
     StartProcess("docker", "--version");
     StartProcess("docker", "compose version");
@@ -21,7 +21,7 @@ Task("Init")
 Task("Restore")
   .IsDependentOn("Init")
   .Does(() => {
-    StartProcess("docker", "compose build chef-client chocolatey");
+    StartProcess("docker", "compose build chocolatey");
   });
 
 Task("Version")

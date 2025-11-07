@@ -1,9 +1,22 @@
 #load ./build/cake/core.cake
 
+Task("Init")
+  .IsDependentOn("CoreInit")
+  .Does(() => {
+    StartProcess("choco", "--version");
+
+    StartProcess("choco", "install -y chef-client --version 18.7.10.20250520 --no-progress");
+    Environment.SetEnvironmentVariable("CHEF_LICENSE", "accept-silent");
+  });
+
 Task("Build")
   .IsDependentOn("Version")
   .Does(() => {
-    StartProcess("docker", $"compose run --env \"CHOCOLATEY_PROJECT_VERSION={projectVersion}\" --env \"CHOCOLATEY_PACKAGE_VERSION={packageVersion}\" --entrypoint \"powershell -File ./build/docker/chef-client.cookbook.run.ps1\" chef-client");
+    Environment.SetEnvironmentVariable("CHOCOLATEY_PROJECT_VERSION", projectVersion);
+    Environment.SetEnvironmentVariable("CHOCOLATEY_PACKAGE_VERSION", packageVersion);
+    Environment.SetEnvironmentVariable("ARTIFACTS_DIR", MakeAbsolute(Directory("./artifacts/")).FullPath);
+
+    StartProcess("powershell", "-File ./build/chef/cookbook.run.ps1");
   });
 
 Task("Test")
@@ -36,7 +49,7 @@ Task("Test")
 Task("Package")
   .IsDependentOn("Test")
   .Does(() => {
-    StartProcess("docker", $"compose run --entrypoint \"powershell -File ./build/docker/chocolatey.package.pack.ps1\" chocolatey");
+    StartProcess("docker", $"compose run --rm --entrypoint \"powershell -File ./build/chocolatey/package.pack.ps1\" chocolatey");
   });
 
 Task("Publish")
