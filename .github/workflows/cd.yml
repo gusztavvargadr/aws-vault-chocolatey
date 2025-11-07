@@ -52,7 +52,7 @@ jobs:
 
       - name: Publish Cake
         env:
-          CHOCOLATEY_SERVER: ${{ secrets.CHOCOLATEY_SERVER }}
+          CHOCOLATEY_SERVER: ${{ vars.CHOCOLATEY_SERVER }}
           CHOCOLATEY_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }}
         run: dotnet cake deploy.cake --target publish
 
