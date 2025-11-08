@@ -1,27 +1,48 @@
-#load ./build/cake/core.cake
+var target = Argument("target", "Package");
+var packageName = "aws-vault";
+
+var sourceVersion = Argument("source-version", "7.7.9");
+var buildVersion = Argument("build-version", $"{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}");
+var projectVersion = Argument("project-version", sourceVersion);
+var packageVersion = Argument("package-version", sourceVersion);
+
+var chocolateyServer = EnvironmentVariable("CHOCOLATEY_SERVER", string.Empty);
 
 Task("Init")
-  .IsDependentOn("CoreInit")
   .Does(() => {
+    Information($"Source version: '{sourceVersion}'.");
+    Information($"Build version: '{buildVersion}'.");
+    Information($"Project version: '{projectVersion}'.");
+    Information($"Package version: '{packageVersion}'.");
+
     StartProcess("choco", "--version");
+
+    StartProcess("docker", "--version");
+    StartProcess("docker", "compose version");
+
+    StartProcess("docker", "system df");
+    StartProcess("docker", "container ls -a");
+    StartProcess("docker", "image ls -a");
 
     StartProcess("choco", "install -y chef-client --version 18.7.10.20250520 --no-progress");
     Environment.SetEnvironmentVariable("CHEF_LICENSE", "accept-silent");
   });
 
+Task("Restore")
+  .IsDependentOn("Init")
+  .Does(() => {
+    StartProcess("docker", "compose build chocolatey");
+  });
+
 Task("Build")
-  .IsDependentOn("Version")
+  .IsDependentOn("Restore")
   .Does(() => {
     Environment.SetEnvironmentVariable("CHOCOLATEY_PROJECT_VERSION", projectVersion);
     Environment.SetEnvironmentVariable("CHOCOLATEY_PACKAGE_VERSION", packageVersion);
     Environment.SetEnvironmentVariable("ARTIFACTS_DIR", MakeAbsolute(Directory("./artifacts/")).FullPath);
 
     StartProcess("powershell", "-File ./build/chef/cookbook.run.ps1");
-  });
 
-Task("Test")
-  .IsDependentOn("Build")
-  .Does(() => {
     var executablePath = "./artifacts/chocolatey/packages/aws-vault/tools/aws-vault.exe";
     using(var process = StartAndReturnProcess(
       executablePath,
@@ -47,14 +68,35 @@ Task("Test")
   });
 
 Task("Package")
-  .IsDependentOn("Test")
+  .IsDependentOn("Build")
   .Does(() => {
     StartProcess("docker", $"compose run --rm --entrypoint \"powershell -File ./build/chocolatey/package.pack.ps1\" chocolatey");
+
+    StartProcess("docker", $"compose run --rm --entrypoint \"powershell -File ./build/chocolatey/package.install.ps1\" chocolatey {packageVersion}");
   });
 
 Task("Publish")
   .IsDependentOn("Package")
   .Does(() => {
+    if (string.IsNullOrEmpty(chocolateyServer)) {
+      Warning("Chocolatey server is not configured, skipping publish.");
+      return;
+    }
+
+    StartProcess("docker", $"compose run --rm --entrypoint \"powershell -File ./build/chocolatey/package.push.ps1\" chocolatey {packageVersion}");
+  });
+
+Task("Clean")
+  .IsDependentOn("Init")
+  .Does(() => {
+    StartProcess("docker", "container prune -f");
+
+    StartProcess("docker", "compose down --rmi local --volumes");
+
+    StartProcess("docker", "image prune -f");
+    StartProcess("docker", "builder prune -af");
+
+    CleanDirectory("./artifacts/");
   });
 
 RunTarget(target);
