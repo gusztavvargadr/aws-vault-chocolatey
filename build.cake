@@ -8,6 +8,33 @@ var packageVersion = Argument("package-version", sourceVersion);
 
 var chocolateyServer = EnvironmentVariable("CHOCOLATEY_SERVER", string.Empty);
 
+void RunDockerCommand(string arguments) {
+  Information($"Running docker command: docker {arguments}");
+  using(var process = StartAndReturnProcess(
+    "docker",
+    new ProcessSettings {
+      Arguments = arguments,
+      RedirectStandardOutput = true,
+      RedirectStandardError = true,
+    }
+  )) {
+    process.WaitForExit();
+    var output = string.Join(Environment.NewLine, process.GetStandardOutput());
+    var error = string.Join(Environment.NewLine, process.GetStandardError());
+    
+    if (!string.IsNullOrWhiteSpace(output)) {
+      Information(output);
+    }
+    if (!string.IsNullOrWhiteSpace(error)) {
+      Information(error);
+    }
+    
+    if (process.GetExitCode() != 0) {
+      throw new Exception($"Docker command failed with exit code '{process.GetExitCode()}': docker {arguments}");
+    }
+  }
+}
+
 Task("Init")
   .Does(() => {
     Information($"Source version: '{sourceVersion}'.");
@@ -17,12 +44,12 @@ Task("Init")
 
     StartProcess("choco", "--version");
 
-    StartProcess("docker", "--version");
-    StartProcess("docker", "compose version");
+    RunDockerCommand("--version");
+    RunDockerCommand("compose version");
 
-    StartProcess("docker", "system df");
-    StartProcess("docker", "container ls -a");
-    StartProcess("docker", "image ls -a");
+    RunDockerCommand("system df");
+    RunDockerCommand("container ls -a");
+    RunDockerCommand("image ls -a");
   });
 
 Task("Restore")
@@ -31,7 +58,7 @@ Task("Restore")
     StartProcess("choco", "install -y chef-client --version 18.8.54 --no-progress");
     Environment.SetEnvironmentVariable("CHEF_LICENSE", "accept-silent");
 
-    StartProcess("docker", "compose build chocolatey");
+    RunDockerCommand("compose build chocolatey");
   });
 
 Task("Build")
@@ -70,9 +97,9 @@ Task("Build")
 Task("Package")
   .IsDependentOn("Build")
   .Does(() => {
-    StartProcess("docker", $"compose run --rm --entrypoint \"powershell -File ./build/chocolatey/package.pack.ps1\" chocolatey");
+    RunDockerCommand($"compose run --rm --entrypoint \"powershell -File ./build/chocolatey/package.pack.ps1\" chocolatey");
 
-    StartProcess("docker", $"compose run --rm --entrypoint \"powershell -File ./build/chocolatey/package.install.ps1\" chocolatey {packageVersion}");
+    RunDockerCommand($"compose run --rm --entrypoint \"powershell -File ./build/chocolatey/package.install.ps1\" chocolatey {packageVersion}");
   });
 
 Task("Publish")
@@ -83,18 +110,18 @@ Task("Publish")
       return;
     }
 
-    StartProcess("docker", $"compose run --rm --entrypoint \"powershell -File ./build/chocolatey/package.push.ps1\" chocolatey {packageVersion}");
+    RunDockerCommand($"compose run --rm --entrypoint \"powershell -File ./build/chocolatey/package.push.ps1\" chocolatey {packageVersion}");
   });
 
 Task("Clean")
   .IsDependentOn("Init")
   .Does(() => {
-    StartProcess("docker", "container prune -f");
+    RunDockerCommand("container prune -f");
 
-    StartProcess("docker", "compose down --rmi local --volumes");
+    RunDockerCommand("compose down --rmi local --volumes");
 
-    StartProcess("docker", "image prune -f");
-    StartProcess("docker", "builder prune -af");
+    RunDockerCommand("image prune -f");
+    RunDockerCommand("builder prune -af");
 
     CleanDirectory("./artifacts/");
   });
