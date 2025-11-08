@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/windows/servercore:ltsc2025
+FROM mcr.microsoft.com/windows/servercore:ltsc2022
 
 WORKDIR C:/opt/docker/work/
 
