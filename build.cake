@@ -23,14 +23,14 @@ Task("Init")
     StartProcess("docker", "system df");
     StartProcess("docker", "container ls -a");
     StartProcess("docker", "image ls -a");
-
-    StartProcess("choco", "install -y chef-client --version 18.7.10.20250520 --no-progress");
-    Environment.SetEnvironmentVariable("CHEF_LICENSE", "accept-silent");
   });
 
 Task("Restore")
   .IsDependentOn("Init")
   .Does(() => {
+    StartProcess("choco", "install -y chef-client --version 18.8.54 --no-progress");
+    Environment.SetEnvironmentVariable("CHEF_LICENSE", "accept-silent");
+
     StartProcess("docker", "compose build chocolatey");
   });
 
