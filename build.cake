@@ -55,7 +55,7 @@ Task("Init")
 Task("Restore")
   .IsDependentOn("Init")
   .Does(() => {
-    StartProcess("choco", "install -y chef-client --version 18.7.6 --no-progress");
+    StartProcess("choco", "install -y chef-client --version 18.7.10.20250520 --no-progress");
     Environment.SetEnvironmentVariable("CHEF_LICENSE", "accept-silent");
 
     RunDockerCommand("compose build chocolatey");
