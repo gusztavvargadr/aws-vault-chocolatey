@@ -4,3 +4,7 @@ artifacts/
 **/nodes/
 
 .vagrant/
+
+# Chef local configuration
+src/chef/local-mode-cache/
+src/chef/chef_guid
