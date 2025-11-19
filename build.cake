@@ -55,21 +55,30 @@ Task("Init")
 Task("Restore")
   .IsDependentOn("Init")
   .Does(() => {
-    StartProcess("choco", "install -y chef-client --version 18.7.10.20250520 --no-progress");
-    Environment.SetEnvironmentVariable("CHEF_LICENSE", "accept-silent");
-
+    // No longer need Chef installation
+    // Build docker image for testing/publishing (still useful for isolation)
     RunDockerCommand("compose build chocolatey");
   });
 
 Task("Build")
   .IsDependentOn("Restore")
   .Does(() => {
+    // Set environment variables for PowerShell script
     Environment.SetEnvironmentVariable("CHOCOLATEY_PROJECT_VERSION", projectVersion);
     Environment.SetEnvironmentVariable("CHOCOLATEY_PACKAGE_VERSION", packageVersion);
-    Environment.SetEnvironmentVariable("ARTIFACTS_DIR", MakeAbsolute(Directory("./artifacts/")).FullPath);
 
-    StartProcess("powershell", "-File ./build/chef/cookbook.run.ps1");
+    // Run PowerShell package builder
+    var artifactsDir = MakeAbsolute(Directory("./artifacts/")).FullPath;
+    var configPath = "./build/chocolatey/package.json";
+    var result = StartProcess("pwsh", new ProcessSettings {
+      Arguments = $"-File ./build/chocolatey/New-ChocolateyPackage.ps1 -ConfigPath {configPath} -OutputDirectory \"{artifactsDir}/chocolatey/packages/\""
+    });
+    
+    if (result != 0) {
+      throw new Exception($"Package build failed with exit code: {result}");
+    }
 
+    // Verify the downloaded binary version
     var executablePath = "./artifacts/chocolatey/packages/aws-vault/tools/aws-vault.exe";
     using(var process = StartAndReturnProcess(
       executablePath,
