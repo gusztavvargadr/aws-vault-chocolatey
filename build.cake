@@ -42,8 +42,6 @@ Task("Init")
     Information($"Project version: '{projectVersion}'.");
     Information($"Package version: '{packageVersion}'.");
 
-    StartProcess("choco", "--version");
-
     RunDockerCommand("--version");
     RunDockerCommand("compose version");
 
