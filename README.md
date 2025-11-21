@@ -1,7 +1,7 @@
 # aws-vault-chocolatey
 
 [![GitHub Actions build](https://github.com/gusztavvargadr/aws-vault-chocolatey/actions/workflows/cd.yml/badge.svg)](https://github.com/gusztavvargadr/aws-vault-chocolatey/actions/workflows/cd.yml)
-[![GitHub latest release](https://img.shields.io/github/release/gusztavvargadr/aws-vault-chocolatey.svg)](https://github.com/gusztavvargadr/aws-vault-chocolatey/releases/latest/)
+[![GitHub latest release](https://img.shields.io/github/release/gusztavvargadr/aws-vault-chocolatey.svg)](https://github.com/gusztavvargadr/aws-vault-chocolatey/releases/latest)
 [![Chocolatey downloads](https://img.shields.io/chocolatey/dt/aws-vault.svg)](https://chocolatey.org/packages/aws-vault)
 
 This repository contains the source of the [Chocolatey package] for [AWS Vault] by [ByteNess].

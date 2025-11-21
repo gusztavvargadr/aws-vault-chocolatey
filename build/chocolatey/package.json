@@ -1,6 +1,6 @@
 {
   "Id": "aws-vault",
   "Title": "AWS Vault",
-  "ProjectSourceUrl": "https://github.com/ByteNess/aws-vault/",
-  "PackageSourceUrl": "https://github.com/gusztavvargadr/aws-vault-chocolatey/"
+  "ProjectSourceUrl": "https://github.com/ByteNess/aws-vault",
+  "PackageSourceUrl": "https://github.com/gusztavvargadr/aws-vault-chocolatey"
 }

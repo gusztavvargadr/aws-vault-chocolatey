@@ -95,14 +95,14 @@ function New-NuspecFile {
     <owners>Gusztav Varga</owners>
     <title>$($Config.Title)</title>
     <authors>ByteNess</authors>
-    <projectUrl>https://99designs.com/blog/engineering/aws-vault/</projectUrl>
+    <projectUrl>https://99designs.com/blog/engineering/aws-vault</projectUrl>
     <iconUrl>https://github.com/ByteNess.png</iconUrl>
     <copyright>2015 ByteNess</copyright>
     <licenseUrl>$($Config.ProjectLicenseUrl)</licenseUrl>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <projectSourceUrl>$($Config.ProjectSourceUrl)</projectSourceUrl>
-    <docsUrl>$($Config.ProjectSourceUrl)blob/v$($Config.ProjectVersion)/README.md</docsUrl>
-    <bugTrackerUrl>$($Config.ProjectSourceUrl)issues/</bugTrackerUrl>
+    <docsUrl>$($Config.ProjectSourceUrl)/blob/v$($Config.ProjectVersion)/README.md</docsUrl>
+    <bugTrackerUrl>$($Config.ProjectSourceUrl)/issues</bugTrackerUrl>
     <tags>aws-vault ByteNess aws</tags>
     <summary>A tool to securely store and access AWS credentials in a development environment</summary>
     <description>
@@ -110,7 +110,7 @@ function New-NuspecFile {
 
       AWS Vault stores IAM credentials in your operating system's secure keystore and then generates temporary credentials from those to expose to your shell and applications. It's designed to be complementary to the AWS CLI tools, and is aware of your profiles and configuration in ``~/.aws/config``.
     </description>
-    <releaseNotes>$($Config.ProjectSourceUrl)releases/tag/v$($Config.ProjectVersion)/</releaseNotes>
+    <releaseNotes>$($Config.ProjectSourceUrl)/releases/tag/v$($Config.ProjectVersion)</releaseNotes>
   </metadata>
   <files>
     <file src="tools\**" target="tools" />
@@ -141,7 +141,6 @@ Verify that the checksum of $DownloadUrl matches the following:
 md5: $($Checksums.MD5)
 sha256: $($Checksums.SHA256)
 sha512: $($Checksums.SHA512)
-
 "@
     
     Set-Content -Path $OutputPath -Value $verification -Encoding UTF8
@@ -182,7 +181,6 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
 "@
     
     Set-Content -Path $OutputPath -Value $license -Encoding UTF8
@@ -244,7 +242,7 @@ try {
     # Add version information to config
     $config.ProjectVersion = $ProjectVersion
     $config.PackageVersion = $PackageVersion
-    $config.ProjectLicenseUrl = "$($config.ProjectSourceUrl)blob/v$ProjectVersion/LICENSE"
+    $config.ProjectLicenseUrl = "$($config.ProjectSourceUrl)/blob/v$ProjectVersion/LICENSE"
     
     Write-Log "Loaded configuration for package: $($config.Id) v$($config.PackageVersion)"
     
