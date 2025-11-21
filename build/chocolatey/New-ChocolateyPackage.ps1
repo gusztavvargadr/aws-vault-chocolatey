@@ -255,7 +255,7 @@ try {
     New-Item -ItemType Directory -Path $toolsDir -Force | Out-Null
     
     # Build download URL
-    $downloadUrl = "$($config.ProjectSourceUrl)releases/download/v$($config.ProjectVersion)/$($config.Id)-windows-amd64.exe"
+    $downloadUrl = "$($config.ProjectSourceUrl)/releases/download/v$($config.ProjectVersion)/$($config.Id)-windows-amd64.exe"
     $binaryPath = Join-Path $toolsDir "$($config.Id).exe"
     
     # Download binary
