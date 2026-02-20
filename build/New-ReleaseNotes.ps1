@@ -135,12 +135,12 @@ if ([string]::IsNullOrWhiteSpace($Changelog)) {
         }
     }
 }
-
 # Perform variable substitution
-$releaseNotes = $template.Replace('{{VERSION}}', $Version) `
-    .Replace('{{PREVIOUS_VERSION}}', $PreviousVersion) `
-    .Replace('{{AUTHOR}}', $Author) `
-    .Replace('{{CHANGELOG}}', $Changelog)
+$releaseNotes = ($template.
+    Replace('{{VERSION}}', $Version).
+    Replace('{{PREVIOUS_VERSION}}', $PreviousVersion).
+    Replace('{{AUTHOR}}', $Author).
+    Replace('{{CHANGELOG}}', $Changelog))
 
 if ($OutputPath) {
     Write-Host "Writing release notes to: $OutputPath"
