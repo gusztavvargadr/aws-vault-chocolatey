@@ -133,7 +133,7 @@ dotnet cake --target Clean
   3. Uploads `.nupkg` artifacts to GitHub
   4. `dotnet cake --target clean` - Cleanup (always runs)
 
-**Update Submodule** ([.github/workflows/update-submodule.yml](../.github/workflows/update-submodule.yml)):
+**Check for Updates** ([.github/workflows/check-for-updates.yml](../.github/workflows/check-for-updates.yml)):
 - Runs on schedule (daily at 9 AM UTC) or manual dispatch
 - Steps:
   1. Calls `Get-NextVersion.ps1` to detect next missing version (not latest)
@@ -211,7 +211,7 @@ $env:CHOCOLATEY_API_KEY = "test-key"
 dotnet cake --target Publish --source-version 7.9.5
 
 # Trigger version detection workflow manually
-gh workflow run update-submodule.yml
+gh workflow run check-for-updates.yml
 ```
 
 **Troubleshooting**:
