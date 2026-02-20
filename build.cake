@@ -129,7 +129,7 @@ Task("Publish")
     RunDockerCommand($"compose run --rm --entrypoint \"powershell -File ./build/chocolatey/package.push.ps1\" chocolatey {packageVersion}");
   });
 
-Task("GenerateReleaseNotes")
+Task("GenerateDraftReleaseNotes")
   .Does(() => {
     var releaseNotesVersion = Argument("release-version", sourceVersion);
     var releasePreviousVersion = Argument("release-previous-version", "");
@@ -145,18 +145,18 @@ Task("GenerateReleaseNotes")
     // Ensure artifacts directory exists
     EnsureDirectoryExists(artifactsDir);
 
-    Information($"Generating release notes for version '{releaseNotesVersion}'");
+    Information($"Generating draft release notes for version '{releaseNotesVersion}'");
     Information($"Previous version: '{releasePreviousVersion}'");
     Information($"Author: '{releaseAuthor}'");
 
-    // Generate changelog from git
+    // Generate changelog from git (but without requiring tags to exist)
     var changelog = "";
     if (releasePreviousVersion != "initial") {
       try {
         using(var process = StartAndReturnProcess(
           "git",
           new ProcessSettings {
-            Arguments = $"log v{releasePreviousVersion}..v{releaseNotesVersion} --pretty=format:\"%s (%an)\"",
+            Arguments = $"log --pretty=format:\"%s (%an)\" -n 20",
             RedirectStandardOutput = true,
             RedirectStandardError = true,
           }
@@ -165,7 +165,7 @@ Task("GenerateReleaseNotes")
           var commits = process.GetStandardOutput().ToList();
           if (commits.Count > 0) {
             var changelogLines = commits.Select(c => {
-              // Parse commit message to extract PR info
+              // Parse commit message  to extract PR info
               // Expected format: "Update for 7.9.2 (#105) (Author Name)"
               var match = System.Text.RegularExpressions.Regex.Match(c, @"^(.+?)\s*\(#(\d+)\)\s*\((.+?)\)$");
               if (match.Success) {

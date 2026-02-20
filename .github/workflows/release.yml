@@ -9,6 +9,10 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: write
+  actions: read
+
 jobs:
   release:
     name: Release
@@ -28,40 +32,8 @@ jobs:
           "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
           Write-Host "Releasing version: $version"
 
-      - name: Find previous version
-        id: find-previous
-        shell: pwsh
-        run: |
-          # Get all tags in reverse chronological (descending version) order
-          $currentTag = 'v${{ steps.extract-version.outputs.version }}'
-          $allTags = git tag -l --sort=-version:refname
-          
-          if ($allTags) {
-            # Ensure we are working with an array for indexing
-            $tagArray = @($allTags)
-            # Find the index of the current tag in the sorted list
-            $currentIndex = [array]::IndexOf($tagArray, $currentTag)
-            
-            if ($currentIndex -ge 0 -and ($currentIndex + 1) -lt $tagArray.Count) {
-              # The previous version is the next entry after the current tag
-              $previousTag = $tagArray[$currentIndex + 1]
-              $previousVersion = $previousTag -replace '^v', ''
-            } else {
-              # No earlier tag found; treat as initial release
-              $previousVersion = "initial"
-            }
-          } else {
-            $previousVersion = "initial"
-          }
-          
-          "version=$previousVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-          Write-Host "Previous version: $previousVersion"
-
       - name: Init .NET
         run: dotnet tool restore
-
-      - name: Generate release notes
-        run: dotnet cake --target GenerateReleaseNotes --release-version ${{ steps.extract-version.outputs.version }} --release-previous-version ${{ steps.find-previous.outputs.version }}
 
       - name: Restore Docker image
         run: dotnet cake --target Restore
@@ -88,10 +60,11 @@ jobs:
             core.setOutput('run_id', response.data.workflow_runs[0].id.toString());
 
       - name: Download Chocolatey artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v4
         with:
           name: chocolatey
           run-id: ${{ steps.find-cd.outputs.run_id }}
+          github-token: ${{ github.token }}
           repository: ${{ github.repository }}
           path: artifacts/chocolatey
 
@@ -110,13 +83,55 @@ jobs:
           CHOCOLATEY_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }}
         run: docker compose run --rm --entrypoint "powershell -File ./build/chocolatey/package.push.ps1" chocolatey ${{ steps.extract-version.outputs.version }}
 
-      - name: Create GitHub Release
+      - name: Check for existing draft release
+        id: check-release
+        uses: actions/github-script@v8
+        with:
+          script: |
+            try {
+              const response = await github.rest.repos.getReleaseByTag({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                tag: 'v${{ steps.extract-version.outputs.version }}'
+              });
+              
+              if (response.data.draft) {
+                core.setOutput('exists', 'true');
+                core.setOutput('release_id', response.data.id.toString());
+                core.info('Found existing draft release');
+              } else {
+                core.setOutput('exists', 'false');
+                core.info('Release exists but is not a draft');
+              }
+            } catch (error) {
+              if (error.status === 404) {
+                core.setOutput('exists', 'false');
+                core.info('No existing release found');
+              } else {
+                throw error;
+              }
+            }
+
+      - name: Publish existing draft release
+        if: steps.check-release.outputs.exists == 'true'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release edit v${{ steps.extract-version.outputs.version }} --draft=false
+          Write-Host "Published draft release v${{ steps.extract-version.outputs.version }}"
+
+      - name: Create GitHub Release (fallback)
+        if: steps.check-release.outputs.exists == 'false'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.extract-version.outputs.version }}
           name: v${{ steps.extract-version.outputs.version }}
-          body_path: artifacts/release-notes.md
-          draft: true
+          body: |
+            Release for aws-vault v${{ steps.extract-version.outputs.version }}
+            
+            See [upstream release](https://github.com/ByteNess/aws-vault/releases/tag/v${{ steps.extract-version.outputs.version }}) for details.
+          draft: false
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ github.token }}
