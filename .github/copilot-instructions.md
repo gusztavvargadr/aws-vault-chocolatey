@@ -13,10 +13,16 @@ This repository automates Chocolatey packaging of AWS Vault for Windows. It down
 **Key Components**:
 - [build.cake](../build.cake): Orchestrates the entire build pipeline using Cake Build
 - [build/chocolatey/New-ChocolateyPackage.ps1](../build/chocolatey/New-ChocolateyPackage.ps1): Core package generator (downloads binary, calculates checksums, generates metadata)
-- [build/chocolatey/package.json](../build/chocolatey/package.json): Package configuration (ID, title, URLs)
+- [build/chocolatey/package.json](../build/chocolatey/package.json): Package configuration and centralized version storage
+- [lib/ByteNess/aws-vault](../lib/ByteNess/aws-vault): Git submodule tracking upstream releases
+- [build/Get-NextVersion.ps1](../build/Get-NextVersion.ps1): Detects next missing upstream version via GitHub API
+- [build/New-ReleaseNotes.ps1](../build/New-ReleaseNotes.ps1): Generates release notes with git changelog
+- [build/release-template.md](../build/release-template.md): Release notes template with version placeholders
 - Docker: Windows Server Core 2022 with Chocolatey 2.5.1 for clean testing
 
 **Build Task Flow**: Init → Restore (Docker build) → Build (native package generation) → Package (Docker test) → Publish (Docker push)
+
+**Release Workflow**: Update Submodule (detects new version) → PR (for review) → CD (build/test) → Tag push → Release (publish + GitHub release)
 
 ## Build and Test
 
@@ -33,6 +39,9 @@ dotnet cake --source-version 7.10.0
 # Test full workflow including install/uninstall
 dotnet cake --target Package
 
+# Generate release notes for a version
+dotnet cake --target GenerateReleaseNotes --release-version 7.9.6 --release-previous-version 7.9.5
+
 # Publish (requires env vars)
 $env:CHOCOLATEY_SERVER = "https://push.chocolatey.org/"
 $env:CHOCOLATEY_API_KEY = "your-key"
@@ -44,11 +53,23 @@ dotnet cake --target Clean
 
 ## Project Conventions
 
-**Version Management** (4 distinct versions in [build.cake](../build.cake)):
-- `source-version`: Upstream AWS Vault release (default: 7.9.5)
-- `build-version`: Unix timestamp for build identification
-- `project-version`: Version being packaged (= source-version)
-- `package-version`: Chocolatey package version (= source-version, can differ for package iterations)
+**Version Management**: Version now stored in [build/chocolatey/package.json](../build/chocolatey/package.json) as the source of truth. [build.cake](../build.cake) reads this value instead of hardcoding. This enables:
+- Single version entry point for all automation
+- Easy updates without modifying build scripts
+- Workflow-friendly version tracking
+
+**Version Build Arguments** (still supported for manual testing):
+- `--source-version`: Upstream AWS Vault release (overrides package.json default)
+- `--build-version`: Unix timestamp for build identification
+- `--project-version`: Version being packaged (= source-version)
+- `--package-version`: Chocolatey package version (= source-version)
+
+**Upstream Tracking**: [lib/ByteNess/aws-vault](../lib/ByteNess/aws-vault) is a git submodule that points to the upstream aws-vault repository. The Update Submodule workflow updates this to track specific release tags.
+
+**Release Notes**:
+- Template: [build/release-template.md](../build/release-template.md) with placeholders (`{{VERSION}}`, `{{PREVIOUS_VERSION}}`, `{{AUTHOR}}`, `{{CHANGELOG}}`)
+- Generator: [build/New-ReleaseNotes.ps1](../build/New-ReleaseNotes.ps1) performs variable substitution and generates changelog from git history
+- Cake Task: `GenerateReleaseNotes` task generates final release notes to `artifacts/release-notes.md`
 
 **Binary Verification**: Build task runs `aws-vault.exe --version` and validates output matches `v{project-version}` before proceeding.
 
@@ -56,39 +77,88 @@ dotnet cake --target Clean
 
 **No Install Scripts**: Package doesn't use `chocolateyInstall.ps1`. Chocolatey auto-shims executables found in `tools/`.
 
-**Docker Command Wrapper**: All Docker operations use `RunDockerCommand()` helper in [build.cake](../build.cake#L11-L35) for consistent logging and error handling.
+**Docker Command Wrapper**: All Docker operations use `RunDockerCommand()` helper in [build.cake](../build.cake) for consistent logging and error handling.
 
-**Configuration Separation**: Package metadata lives in [package.json](../build/chocolatey/package.json), versions passed as arguments—enables updates without code changes.
+## Automated Release Processing
+
+**Release Workflow Overview**:
+1. **Update Submodule workflow** (daily or manual):
+   - Queries GitHub API for aws-vault releases
+   - Detects next missing version (not latest, enables sequential processing)
+   - Auto-creates PR with version bump in package.json
+   - Updates submodule to that release tag
+   
+2. **CD workflow** (on PR/push to main):
+   - Validates package builds successfully
+   - Tests install/uninstall in Docker
+   - Uploads artifacts for review
+   
+3. **Release workflow** (on tag creation `v*`):
+   - Generates release notes with git changelog
+   - Publishes to Chocolatey (if env vars configured)
+   - Creates GitHub release with generated notes
+   
+**Sequential Version Processing**:
+- [Get-NextVersion.ps1](../build/Get-NextVersion.ps1) compares current version (in package.json) against all GitHub releases
+- Returns only the earliest missing version (e.g., if at 7.9.5, returns 7.9.6, not 7.9.7)
+- Prevents version skipping; enables sequential release of backlogs
+- Workflow re-runs after each tag push to detect and process next version
+
+**Release Notes Generation**:
+- Template: [release-template.md](../build/release-template.md)
+- Generator: [New-ReleaseNotes.ps1](../build/New-ReleaseNotes.ps1)
+- Cake task: `GenerateReleaseNotes --release-version X --release-previous-version Y`
+- Includes git changelog (commits between tags) in the overview section
 
 ## Integration Points
 
 **Upstream Dependency**: Downloads from `https://github.com/ByteNess/aws-vault/releases/download/v{VERSION}/aws-vault-windows-amd64.exe`
 
+**Upstream Tracking**: Submodule at [lib/ByteNess/aws-vault](../lib/ByteNess/aws-vault) points to `https://github.com/ByteNess/aws-vault`. Update Submodule workflow fetches releases and updates to specific tags.
+
 **Chocolatey Publishing**: Uses environment variables `CHOCOLATEY_SERVER` and `CHOCOLATEY_API_KEY` for authentication. Publish target skips silently if server not configured.
 
-**Docker Compose**: Mounts repository to `C:/opt/docker/work/` in container. Scripts run via `--entrypoint` override in [build.cake](../build.cake#L107-L119).
+**Docker Compose**: Mounts repository to `C:/opt/docker/work/` in container. Scripts run via `--entrypoint` override in [build.cake](../build.cake).
 
 ## CI/CD Setup
 
-**GitHub Actions Workflow** ([.github/workflows/cd.yml](../.github/workflows/cd.yml)):
+**GitHub Actions Workflows**:
+
+**Continuous Delivery** ([.github/workflows/cd.yml](../.github/workflows/cd.yml)):
 - Runs on `windows-2022` runners
-- Triggers:
-  - Push to `main` branch (auto-package)
-  - Pull requests to `main` (validation)
-  - Manual dispatch with optional publish flag
+- Triggers: Push to `main` branch or PR to `main`
+- Steps:
+  1. `dotnet tool restore` - Restores Cake 4.1.0
+  2. `dotnet cake --target package` - Builds and tests package
+  3. Uploads `.nupkg` artifacts to GitHub
+  4. `dotnet cake --target clean` - Cleanup (always runs)
 
-**Pipeline Steps**:
-1. `dotnet tool restore` - Restores Cake 4.1.0 from [.config/dotnet-tools.json](../.config/dotnet-tools.json)
-2. `dotnet cake --target package` - Builds and tests package
-3. Uploads artifacts to GitHub (`.nupkg` files in `artifacts/chocolatey/`)
-4. `dotnet cake --target publish --exclusive` - Publishes to Chocolatey (only if `publish: true` input provided)
-5. `dotnet cake --target clean` - Cleanup (always runs)
+**Update Submodule** ([.github/workflows/update-submodule.yml](../.github/workflows/update-submodule.yml)):
+- Runs on schedule (daily at 9 AM UTC) or manual dispatch
+- Steps:
+  1. Calls `Get-NextVersion.ps1` to detect next missing version (not latest)
+  2. Updates submodule to that specific release tag
+  3. Updates version in [package.json](../build/chocolatey/package.json)
+  4. Creates PR with changes (labels: automation, dependencies)
+  5. If no missing versions, exits gracefully
+- Enables sequential processing of multiple releases (one PR per version)
 
-**Required Secrets**:
+**Release** ([.github/workflows/release.yml](../.github/workflows/release.yml)):
+- Triggered on tag creation (pattern: `v*`)
+- Steps:
+  1. Extracts version from tag
+  2. Finds previous release tag
+  3. Calls `GenerateReleaseNotes` Cake task (generates release notes with git changelog)
+  4. `dotnet cake --target package` - Builds final package
+  5. `dotnet cake --target publish --exclusive` - Publishes to Chocolatey
+  6. Creates GitHub release with generated release notes
+  7. `dotnet cake --target clean` - Cleanup
+
+**Required Secrets/Variables**:
 - Organization variable: `CHOCOLATEY_SERVER` (e.g., `https://push.chocolatey.org/`)
 - Repository secret: `CHOCOLATEY_API_KEY` (Chocolatey API key)
 
-**Concurrency Control**: Cancels in-progress runs when new commits pushed to same branch.
+**Concurrency Control**: All workflows cancel in-progress runs when new commits pushed to same branch.
 
 ## Local Development
 
@@ -129,10 +199,19 @@ dotnet cake --target Package --source-version 7.10.0
 dotnet cake --target Clean
 dotnet cake --target Package --source-version 7.9.5
 
+# Generate release notes locally
+dotnet cake --target GenerateReleaseNotes --release-version 7.9.6 --release-previous-version 7.9.5
+
+# Test release notes with custom author (defaults to aws-vault-chocolatey)
+dotnet cake --target GenerateReleaseNotes --release-version 7.9.6 --release-previous-version 7.9.5 --release-author "your-name"
+
 # Local publish test (requires env vars)
 $env:CHOCOLATEY_SERVER = "http://localhost:8080"  # Local server
 $env:CHOCOLATEY_API_KEY = "test-key"
 dotnet cake --target Publish --source-version 7.9.5
+
+# Trigger version detection workflow manually
+gh workflow run update-submodule.yml
 ```
 
 **Troubleshooting**:
