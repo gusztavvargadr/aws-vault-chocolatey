@@ -153,15 +153,27 @@ Task("GenerateReleaseNotes")
         using(var process = StartAndReturnProcess(
           "git",
           new ProcessSettings {
-            Arguments = $"log v{releasePreviousVersion}..v{releaseNotesVersion} --pretty=format:\"- %s (%h)\"",
+            Arguments = $"log v{releasePreviousVersion}..v{releaseNotesVersion} --pretty=format:\"%s (%an)\"",
             RedirectStandardOutput = true,
             RedirectStandardError = true,
           }
         )) {
           process.WaitForExit();
-          var output = string.Join(Environment.NewLine, process.GetStandardOutput());
-          if (!string.IsNullOrWhiteSpace(output)) {
-            changelog = output;
+          var commits = process.GetStandardOutput().ToList();
+          if (commits.Count > 0) {
+            var changelogLines = commits.Select(c => {
+              // Parse commit message to extract PR info
+              // Expected format: "Update for 7.9.2 (#105) (Author Name)"
+              var match = System.Text.RegularExpressions.Regex.Match(c, @"^(.+?)\s*\(#(\d+)\)\s*\((.+?)\)$");
+              if (match.Success) {
+                var title = match.Groups[1].Value;
+                var prId = match.Groups[2].Value;
+                var author = match.Groups[3].Value;
+                return $"- {title} by @{author} in #{prId}";
+              }
+              return $"- {c}"; // Fallback if format doesn't match
+            });
+            changelog = string.Join(Environment.NewLine, changelogLines);
           }
         }
       }

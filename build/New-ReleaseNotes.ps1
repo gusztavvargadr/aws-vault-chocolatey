@@ -66,9 +66,22 @@ if ([string]::IsNullOrWhiteSpace($Changelog)) {
         # Initial release - show all commits
         Write-Host "Generating changelog for initial release..."
         try {
-            $commits = git log --pretty=format:"- %s (%h)" 2>$null
+            $commits = git log --pretty=format:"%s (%an)" 2>$null
             if ($commits) {
-                $Changelog = $commits
+                # Parse each commit to extract PR info
+                # Expected format: "Update for 7.9.2 (#105) (Author Name)"
+                $changelogLines = @()
+                foreach ($commit in @($commits)) {
+                    if ($commit -match '^(.+?)\s*\(#(\d+)\)\s*\((.+?)\)$') {
+                        $title = $matches[1]
+                        $prId = $matches[2]
+                        $author = $matches[3]
+                        $changelogLines += "- $title by @$author in #$prId"
+                    } else {
+                        $changelogLines += "- $commit"
+                    }
+                }
+                $Changelog = $changelogLines -join "`n"
             } else {
                 $Changelog = "Initial release"
             }
@@ -83,13 +96,26 @@ if ([string]::IsNullOrWhiteSpace($Changelog)) {
         Write-Host "Generating changelog between v$PreviousVersion and v$Version..."
         try {
             # Try to find commits between the tags
-            $commits = git log "v$PreviousVersion..v$Version" --pretty=format:"- %s (%h)" 2>$null
+            $commits = git log "v$PreviousVersion..v$Version" --pretty=format:"%s (%an)" 2>$null
             if (-not $commits) {
                 # If no commits found between tags, try without v prefix
-                $commits = git log "$PreviousVersion..$Version" --pretty=format:"- %s (%h)" 2>$null
+                $commits = git log "$PreviousVersion..$Version" --pretty=format:"%s (%an)" 2>$null
             }
             if ($commits) {
-                $Changelog = $commits
+                # Parse each commit to extract PR info
+                # Expected format: "Update for 7.9.2 (#105) (Author Name)"
+                $changelogLines = @()
+                foreach ($commit in @($commits)) {
+                    if ($commit -match '^(.+?)\s*\(#(\d+)\)\s*\((.+?)\)$') {
+                        $title = $matches[1]
+                        $prId = $matches[2]
+                        $author = $matches[3]
+                        $changelogLines += "- $title by @$author in #$prId"
+                    } else {
+                        $changelogLines += "- $commit"
+                    }
+                }
+                $Changelog = $changelogLines -join "`n"
             } else {
                 Write-Host "No commits found between v$PreviousVersion and v$Version"
                 $Changelog = "See full changelog in resources below"
