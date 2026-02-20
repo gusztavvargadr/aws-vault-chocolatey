@@ -172,7 +172,7 @@ Task("GenerateReleaseNotes")
                 var title = match.Groups[1].Value;
                 var prId = match.Groups[2].Value;
                 var author = match.Groups[3].Value;
-                return $"- {title} by @{author} in #{prId}";
+                return $"- {title} by {author} in #{prId}";
               }
               return $"- {c}"; // Fallback if format doesn't match
             });

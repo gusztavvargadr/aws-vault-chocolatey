@@ -15,7 +15,7 @@ jobs:
     runs-on: windows-2022
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -68,7 +68,7 @@ jobs:
 
       - name: Find CD workflow run
         id: find-cd
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const workflowFile = 'cd.yml';
@@ -88,7 +88,7 @@ jobs:
             core.setOutput('run_id', response.data.workflow_runs[0].id.toString());
 
       - name: Download Chocolatey artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: chocolatey
           run-id: ${{ steps.find-cd.outputs.run_id }}
@@ -111,13 +111,13 @@ jobs:
         run: docker compose run --rm --entrypoint "powershell -File ./build/chocolatey/package.push.ps1" chocolatey ${{ steps.extract-version.outputs.version }}
 
       - name: Upload Chocolatey Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: chocolatey-${{ steps.extract-version.outputs.version }}
           path: artifacts/chocolatey/
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2.5
         with:
           tag_name: v${{ steps.extract-version.outputs.version }}
           name: v${{ steps.extract-version.outputs.version }}

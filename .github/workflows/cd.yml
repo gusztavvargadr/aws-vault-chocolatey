@@ -16,7 +16,7 @@ jobs:
     runs-on: windows-2022
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: true
 
@@ -27,7 +27,7 @@ jobs:
         run: dotnet cake --target package
 
       - name: Upload Chocolatey Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: chocolatey
           path: artifacts/chocolatey/
