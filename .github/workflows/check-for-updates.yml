@@ -56,9 +56,9 @@ jobs:
         shell: pwsh
         run: |
           $packageJsonPath = './build/chocolatey/package.json'
-          $packageJson = Get-Content $packageJsonPath | ConvertFrom-Json
+          $packageJson = Get-Content -Raw $packageJsonPath | ConvertFrom-Json
           $packageJson.Version = '${{ steps.detect-version.outputs.next-version }}'
-          $packageJson | ConvertTo-Json | Set-Content $packageJsonPath -Encoding utf8
+          $packageJson | ConvertTo-Json -Depth 10 | Set-Content $packageJsonPath -Encoding utf8
 
       - name: Create Pull Request
         if: steps.detect-version.outputs.next-version != ''

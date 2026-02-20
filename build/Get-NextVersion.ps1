@@ -37,7 +37,7 @@ $ErrorActionPreference = 'Stop'
 Write-Host "Detecting next missing version..."
 
 # Read current version
-$packageJson = Get-Content $PackageJsonPath | ConvertFrom-Json
+$packageJson = Get-Content -Raw $PackageJsonPath | ConvertFrom-Json
 $currentVersion = [version]$packageJson.Version
 Write-Host "Current version: $currentVersion"
 

@@ -43,6 +43,9 @@ param(
     [string]$Changelog,
 
     [Parameter(Mandatory = $false)]
+    [string]$ChangelogPath,
+
+    [Parameter(Mandatory = $false)]
     [string]$OutputPath
 )
 
@@ -57,6 +60,11 @@ if (-not (Test-Path $TemplatePath)) {
 }
 
 $template = Get-Content $TemplatePath -Raw
+
+# Load changelog from file if path provided
+if ($ChangelogPath -and (Test-Path $ChangelogPath)) {
+    $Changelog = Get-Content -Raw $ChangelogPath
+}
 
 # Generate changelog if not provided
 if ([string]::IsNullOrWhiteSpace($Changelog)) {
@@ -76,7 +84,7 @@ if ([string]::IsNullOrWhiteSpace($Changelog)) {
                         $title = $matches[1]
                         $prId = $matches[2]
                         $author = $matches[3]
-                        $changelogLines += "- $title by @$author in #$prId"
+                        $changelogLines += "- $title by $author in #$prId"
                     } else {
                         $changelogLines += "- $commit"
                     }
@@ -110,7 +118,7 @@ if ([string]::IsNullOrWhiteSpace($Changelog)) {
                         $title = $matches[1]
                         $prId = $matches[2]
                         $author = $matches[3]
-                        $changelogLines += "- $title by @$author in #$prId"
+                        $changelogLines += "- $title by $author in #$prId"
                     } else {
                         $changelogLines += "- $commit"
                     }
@@ -129,11 +137,10 @@ if ([string]::IsNullOrWhiteSpace($Changelog)) {
 }
 
 # Perform variable substitution
-$releaseNotes = $template `
-    -replace '{{VERSION}}', $Version `
-    -replace '{{PREVIOUS_VERSION}}', $PreviousVersion `
-    -replace '{{AUTHOR}}', $Author `
-    -replace '{{CHANGELOG}}', $Changelog
+$releaseNotes = $template.Replace('{{VERSION}}', $Version) `
+    .Replace('{{PREVIOUS_VERSION}}', $PreviousVersion) `
+    .Replace('{{AUTHOR}}', $Author) `
+    .Replace('{{CHANGELOG}}', $Changelog)
 
 if ($OutputPath) {
     Write-Host "Writing release notes to: $OutputPath"

@@ -4,8 +4,11 @@ var packageName = "aws-vault";
 // Read version from package.json
 var packageJsonPath = "./build/chocolatey/package.json";
 var packageJsonContent = System.IO.File.ReadAllText(packageJsonPath);
-var packageJsonDoc = System.Text.Json.JsonDocument.Parse(packageJsonContent);
-var defaultSourceVersion = packageJsonDoc.RootElement.GetProperty("Version").GetString();
+string defaultSourceVersion;
+using (var packageJsonDoc = System.Text.Json.JsonDocument.Parse(packageJsonContent))
+{
+  defaultSourceVersion = packageJsonDoc.RootElement.GetProperty("Version").GetString();
+}
 
 var sourceVersion = Argument("source-version", defaultSourceVersion);
 var buildVersion = Argument("build-version", $"{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}");
@@ -184,9 +187,10 @@ Task("GenerateReleaseNotes")
 
     var changelogArg = string.Empty;
     if (!string.IsNullOrEmpty(changelog)) {
-      // Escape quotes in changelog for PowerShell
-      changelog = changelog.Replace("\"", "\\\"");
-      changelogArg = $"-Changelog \"{changelog}\"";
+      // Write changelog to a file and pass the file path to PowerShell to avoid multiline argument issues
+      var changelogFilePath = System.IO.Path.Combine(artifactsDir.FullPath, "changelog.txt");
+      System.IO.File.WriteAllText(changelogFilePath, changelog);
+      changelogArg = $"-ChangelogPath \"{changelogFilePath}\"";
     }
 
     var result = StartProcess("pwsh", new ProcessSettings {

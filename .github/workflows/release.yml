@@ -32,13 +32,24 @@ jobs:
         id: find-previous
         shell: pwsh
         run: |
-          # Get all tags in reverse chronological order
+          # Get all tags in reverse chronological (descending version) order
           $currentTag = 'v${{ steps.extract-version.outputs.version }}'
-          $allTags = git tag -l --sort=-version:refname | Select-Object -Skip 1
+          $allTags = git tag -l --sort=-version:refname
           
           if ($allTags) {
-            $previousTag = $allTags | Select-Object -First 1
-            $previousVersion = $previousTag -replace '^v', ''
+            # Ensure we are working with an array for indexing
+            $tagArray = @($allTags)
+            # Find the index of the current tag in the sorted list
+            $currentIndex = [array]::IndexOf($tagArray, $currentTag)
+            
+            if ($currentIndex -ge 0 -and ($currentIndex + 1) -lt $tagArray.Count) {
+              # The previous version is the next entry after the current tag
+              $previousTag = $tagArray[$currentIndex + 1]
+              $previousVersion = $previousTag -replace '^v', ''
+            } else {
+              # No earlier tag found; treat as initial release
+              $previousVersion = "initial"
+            }
           } else {
             $previousVersion = "initial"
           }
