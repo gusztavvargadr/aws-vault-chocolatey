@@ -31,7 +31,6 @@ jobs:
         with:
           name: chocolatey
           path: artifacts/chocolatey/
-          retention-days: 30
 
       - name: Clean Cake
         run: dotnet cake --target clean

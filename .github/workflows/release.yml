@@ -110,19 +110,13 @@ jobs:
           CHOCOLATEY_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }}
         run: docker compose run --rm --entrypoint "powershell -File ./build/chocolatey/package.push.ps1" chocolatey ${{ steps.extract-version.outputs.version }}
 
-      - name: Upload Chocolatey Artifacts
-        uses: actions/upload-artifact@v6
-        with:
-          name: chocolatey-${{ steps.extract-version.outputs.version }}
-          path: artifacts/chocolatey/
-
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2.5
         with:
           tag_name: v${{ steps.extract-version.outputs.version }}
           name: v${{ steps.extract-version.outputs.version }}
           body_path: artifacts/release-notes.md
-          draft: false
+          draft: true
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ github.token }}

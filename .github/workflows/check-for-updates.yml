@@ -2,8 +2,7 @@ name: Check for Updates
 
 on:
   schedule:
-    # Check for new releases daily at 09:00 UTC
-    - cron: '0 9 * * *'
+    - cron: '0 6 * * *'  # Check for new releases daily at 06:00 UTC
   workflow_dispatch:
 
 concurrency:
@@ -13,7 +12,7 @@ concurrency:
 jobs:
   detect-and-update:
     name: Detect and Update
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       next-version: ${{ steps.detect-version.outputs.next-version }}
     steps:
