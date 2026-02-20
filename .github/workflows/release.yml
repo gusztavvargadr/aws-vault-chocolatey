@@ -100,8 +100,8 @@ jobs:
                 core.setOutput('release_id', response.data.id.toString());
                 core.info('Found existing draft release');
               } else {
-                core.setOutput('exists', 'false');
-                core.info('Release exists but is not a draft');
+                core.setOutput('exists', 'published');
+                core.info('Release already published, skipping');
               }
             } catch (error) {
               if (error.status === 404) {
@@ -120,6 +120,11 @@ jobs:
         run: |
           gh release edit v${{ steps.extract-version.outputs.version }} --draft=false
           Write-Host "Published draft release v${{ steps.extract-version.outputs.version }}"
+
+      - name: Skip if already published
+        if: steps.check-release.outputs.exists == 'published'
+        run: |
+          echo "Release v${{ steps.extract-version.outputs.version }} is already published, skipping"
 
       - name: Create GitHub Release (fallback)
         if: steps.check-release.outputs.exists == 'false'

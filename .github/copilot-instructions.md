@@ -95,14 +95,17 @@ dotnet cake --target Clean
    - Uploads artifacts for review (30 day retention)
    - **On main branch**: Creates draft GitHub release with full release notes (tag not created yet)
    
-3. **Manual Review**:
+3. **Manual Review and Release**:
    - Review draft release at `https://github.com/gusztavvargadr/aws-vault-chocolatey/releases`
-   - Manually publish draft in GitHub UI → creates tag → triggers Release workflow
+   - Manually publish the draft release in GitHub UI (this creates the git tag)
+   - Tag creation automatically triggers the Release workflow
    
 4. **Release workflow** (on tag creation `v*`):
    - Downloads the CD artifact for the same commit and validates the `.nupkg`
    - Publishes to Chocolatey (if env vars configured)
-   - Publishes the draft release (or creates new release if draft missing)
+   - Skips release publishing if already published (normal case when triggered by manual publish)
+   - Publishes draft release if still in draft state (edge case)
+   - Creates new release if none exists (fallback for manual tags)
    
 **Sequential Version Processing**:
 - [Get-NextVersion.ps1](../build/Get-NextVersion.ps1) compares current version (in package.json) against all GitHub releases

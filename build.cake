@@ -165,7 +165,7 @@ Task("GenerateDraftReleaseNotes")
           var commits = process.GetStandardOutput().ToList();
           if (commits.Count > 0) {
             var changelogLines = commits.Select(c => {
-              // Parse commit message  to extract PR info
+              // Parse commit message to extract PR info
               // Expected format: "Update for 7.9.2 (#105) (Author Name)"
               var match = System.Text.RegularExpressions.Regex.Match(c, @"^(.+?)\s*\(#(\d+)\)\s*\((.+?)\)$");
               if (match.Success) {
