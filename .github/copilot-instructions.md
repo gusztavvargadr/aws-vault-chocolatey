@@ -82,7 +82,7 @@ dotnet cake --target Clean
 ## Automated Release Processing
 
 **Release Workflow Overview**:
-1. **Update Submodule workflow** (daily or manual):
+1. **Check for Updates workflow** (daily or manual):
    - Queries GitHub API for aws-vault releases
    - Detects next missing version (not latest, enables sequential processing)
    - Auto-creates PR with version bump in package.json

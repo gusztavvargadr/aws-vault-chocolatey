@@ -1,15 +1,10 @@
-name: Update Submodule
+name: Check for Updates
 
 on:
   schedule:
     # Check for new releases daily at 09:00 UTC
     - cron: '0 9 * * *'
   workflow_dispatch:
-    inputs:
-      token:
-        description: 'Optional GitHub token for higher API rate limits'
-        required: false
-        type: string
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -32,7 +27,7 @@ jobs:
         id: detect-version
         shell: pwsh
         env:
-          GH_TOKEN: ${{ inputs.token || github.token }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           $nextVersion = & ./build/Get-NextVersion.ps1 `
             -PackageJsonPath ./build/chocolatey/package.json `
