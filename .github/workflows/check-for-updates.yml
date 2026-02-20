@@ -87,7 +87,7 @@ jobs:
             dependencies
 
       - name: Enable auto-merge
-        if: steps.detect-version.outputs.next-version != '' && steps.create-pr.outputs.pull-request-number != '' && secrets.GH_PAT != ''
+        if: steps.detect-version.outputs.next-version != '' && steps.create-pr.outputs.pull-request-number != '' && secrets.GH_PAT
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}
         run: |

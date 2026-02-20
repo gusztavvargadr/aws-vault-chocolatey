@@ -149,7 +149,9 @@ Task("GenerateDraftReleaseNotes")
     Information($"Previous version: '{releasePreviousVersion}'");
     Information($"Author: '{releaseAuthor}'");
 
-    // Generate changelog from git (but without requiring tags to exist)
+    // Generate changelog from git
+    // Note: Uses recent commits as best-effort changelog since tags may not exist yet during draft creation.
+    // The previousVersion parameter is still used for documentation context in the release notes template.
     var changelog = "";
     if (releasePreviousVersion != "initial") {
       try {

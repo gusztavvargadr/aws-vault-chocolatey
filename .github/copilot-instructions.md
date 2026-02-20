@@ -97,8 +97,8 @@ dotnet cake --target Clean
    
 3. **Manual Review and Release**:
    - Review draft release at `https://github.com/gusztavvargadr/aws-vault-chocolatey/releases`
-   - Manually publish the draft release in GitHub UI (this creates the git tag)
-   - Tag creation automatically triggers the Release workflow
+   - Manually publish the draft release in GitHub UI (this creates the git tag and triggers the Release workflow)
+   - The Release workflow downloads the CD artifact and publishes to Chocolatey
    
 4. **Release workflow** (on tag creation `v*`):
    - Downloads the CD artifact for the same commit and validates the `.nupkg`
@@ -153,7 +153,7 @@ dotnet cake --target Clean
   5. `dotnet cake --target clean` - Cleanup (always runs)
 
 **Check for Updates** ([.github/workflows/check-for-updates.yml](../.github/workflows/check-for-updates.yml)):
-- Runs on schedule (daily at 9 AM UTC) or manual dispatch
+- Runs on schedule (daily at 6 AM UTC) or manual dispatch
 - Permissions: `contents: write`, `pull-requests: write`
 - Steps:
   1. Calls `Get-NextVersion.ps1` to detect next missing version (not latest)
@@ -166,6 +166,7 @@ dotnet cake --target Clean
 
 **Release** ([.github/workflows/release.yml](../.github/workflows/release.yml)):
 - Triggered on tag creation (pattern: `v*`)
+- Permissions: `contents: write`, `actions: read`
 - Steps:
   1. Extracts version from tag
   2. Finds the successful CD run for the same commit and downloads the `chocolatey` artifact
