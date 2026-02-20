@@ -1,7 +1,16 @@
 var target = Argument("target", "Package");
 var packageName = "aws-vault";
 
-var sourceVersion = Argument("source-version", "7.9.5");
+// Read version from package.json
+var packageJsonPath = "./build/chocolatey/package.json";
+var packageJsonContent = System.IO.File.ReadAllText(packageJsonPath);
+string defaultSourceVersion;
+using (var packageJsonDoc = System.Text.Json.JsonDocument.Parse(packageJsonContent))
+{
+  defaultSourceVersion = packageJsonDoc.RootElement.GetProperty("Version").GetString();
+}
+
+var sourceVersion = Argument("source-version", defaultSourceVersion);
 var buildVersion = Argument("build-version", $"{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}");
 var projectVersion = Argument("project-version", sourceVersion);
 var packageVersion = Argument("package-version", sourceVersion);
@@ -118,6 +127,81 @@ Task("Publish")
     }
 
     RunDockerCommand($"compose run --rm --entrypoint \"powershell -File ./build/chocolatey/package.push.ps1\" chocolatey {packageVersion}");
+  });
+
+Task("GenerateReleaseNotes")
+  .Does(() => {
+    var releaseNotesVersion = Argument("release-version", sourceVersion);
+    var releasePreviousVersion = Argument("release-previous-version", "");
+    var releaseAuthor = Argument("release-author", "aws-vault-chocolatey");
+    var artifactsDir = MakeAbsolute(Directory("./artifacts/"));
+    var releaseNotesOutput = MakeAbsolute(File("./artifacts/release-notes.md")).FullPath;
+
+    if (string.IsNullOrEmpty(releasePreviousVersion)) {
+      Warning("Previous version not specified. Use --release-previous-version argument.");
+      return;
+    }
+
+    // Ensure artifacts directory exists
+    EnsureDirectoryExists(artifactsDir);
+
+    Information($"Generating release notes for version '{releaseNotesVersion}'");
+    Information($"Previous version: '{releasePreviousVersion}'");
+    Information($"Author: '{releaseAuthor}'");
+
+    // Generate changelog from git
+    var changelog = "";
+    if (releasePreviousVersion != "initial") {
+      try {
+        using(var process = StartAndReturnProcess(
+          "git",
+          new ProcessSettings {
+            Arguments = $"log v{releasePreviousVersion}..v{releaseNotesVersion} --pretty=format:\"%s (%an)\"",
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+          }
+        )) {
+          process.WaitForExit();
+          var commits = process.GetStandardOutput().ToList();
+          if (commits.Count > 0) {
+            var changelogLines = commits.Select(c => {
+              // Parse commit message to extract PR info
+              // Expected format: "Update for 7.9.2 (#105) (Author Name)"
+              var match = System.Text.RegularExpressions.Regex.Match(c, @"^(.+?)\s*\(#(\d+)\)\s*\((.+?)\)$");
+              if (match.Success) {
+                var title = match.Groups[1].Value;
+                var prId = match.Groups[2].Value;
+                var author = match.Groups[3].Value;
+                return $"- {title} by {author} in #{prId}";
+              }
+              return $"- {c}"; // Fallback if format doesn't match
+            });
+            changelog = string.Join(Environment.NewLine, changelogLines);
+          }
+        }
+      }
+      catch (Exception ex) {
+        Warning($"Failed to generate changelog from git: {ex.Message}");
+      }
+    }
+
+    var changelogArg = string.Empty;
+    if (!string.IsNullOrEmpty(changelog)) {
+      // Write changelog to a file and pass the file path to PowerShell to avoid multiline argument issues
+      var changelogFilePath = System.IO.Path.Combine(artifactsDir.FullPath, "changelog.txt");
+      System.IO.File.WriteAllText(changelogFilePath, changelog);
+      changelogArg = $"-ChangelogPath \"{changelogFilePath}\"";
+    }
+
+    var result = StartProcess("pwsh", new ProcessSettings {
+      Arguments = $"-File ./build/New-ReleaseNotes.ps1 -TemplatePath ./build/release-template.md -Version {releaseNotesVersion} -PreviousVersion {releasePreviousVersion} -Author {releaseAuthor} {changelogArg} -OutputPath \"{releaseNotesOutput}\""
+    });
+
+    if (result != 0) {
+      throw new Exception($"Release notes generation failed with exit code: {result}");
+    }
+
+    Information($"Release notes written to: {releaseNotesOutput}");
   });
 
 Task("Clean")

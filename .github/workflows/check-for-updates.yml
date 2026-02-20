@@ -1,0 +1,82 @@
+name: Check for Updates
+
+on:
+  schedule:
+    - cron: '0 6 * * *'  # Check for new releases daily at 06:00 UTC
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  detect-and-update:
+    name: Detect and Update
+    runs-on: ubuntu-24.04
+    outputs:
+      next-version: ${{ steps.detect-version.outputs.next-version }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          submodules: true
+          token: ${{ github.token }}
+
+      - name: Detect next missing version
+        id: detect-version
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $nextVersion = & ./build/Get-NextVersion.ps1 `
+            -PackageJsonPath ./build/chocolatey/package.json `
+            -Repository ByteNess/aws-vault `
+            -Token $env:GH_TOKEN
+          
+          "next-version=$nextVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          
+          if ([string]::IsNullOrWhiteSpace($nextVersion)) {
+            Write-Host "No missing versions found, exiting."
+            exit 0
+          }
+          
+          Write-Host "Next version to package: $nextVersion"
+
+      - name: Update submodule to next version
+        if: steps.detect-version.outputs.next-version != ''
+        run: |
+          cd lib/ByteNess/aws-vault
+          git fetch --all --tags
+          git checkout v${{ steps.detect-version.outputs.next-version }}
+          cd ../../..
+
+      - name: Update package.json version
+        if: steps.detect-version.outputs.next-version != ''
+        shell: pwsh
+        run: |
+          $packageJsonPath = './build/chocolatey/package.json'
+          $packageJson = Get-Content -Raw $packageJsonPath | ConvertFrom-Json
+          $packageJson.Version = '${{ steps.detect-version.outputs.next-version }}'
+          $packageJson | ConvertTo-Json -Depth 10 | Set-Content $packageJsonPath -Encoding utf8
+
+      - name: Create Pull Request
+        if: steps.detect-version.outputs.next-version != ''
+        uses: peter-evans/create-pull-request@v8
+        with:
+          token: ${{ github.token }}
+          commit-message: 'chore: bump aws-vault to v${{ steps.detect-version.outputs.next-version }}'
+          title: 'chore: bump aws-vault to v${{ steps.detect-version.outputs.next-version }}'
+          body: |
+            Automated version bump for aws-vault upstream release.
+            
+            **Version**: v${{ steps.detect-version.outputs.next-version }}
+            
+            This PR updates the submodule and package configuration to track the next missing upstream release.
+            
+            ---
+            _Automated by Update Submodule workflow_
+          branch: chore/aws-vault-${{ steps.detect-version.outputs.next-version }}
+          delete-branch: true
+          labels: |
+            automation
+            dependencies

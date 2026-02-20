@@ -1,0 +1,126 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  release:
+    name: Release
+    runs-on: windows-2022
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Extract version from tag
+        id: extract-version
+        shell: pwsh
+        run: |
+          $tag = '${{ github.ref }}'
+          $version = $tag -replace '^refs/tags/v', ''
+          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          Write-Host "Releasing version: $version"
+
+      - name: Find previous version
+        id: find-previous
+        shell: pwsh
+        run: |
+          # Get all tags in reverse chronological (descending version) order
+          $currentTag = 'v${{ steps.extract-version.outputs.version }}'
+          $allTags = git tag -l --sort=-version:refname
+          
+          if ($allTags) {
+            # Ensure we are working with an array for indexing
+            $tagArray = @($allTags)
+            # Find the index of the current tag in the sorted list
+            $currentIndex = [array]::IndexOf($tagArray, $currentTag)
+            
+            if ($currentIndex -ge 0 -and ($currentIndex + 1) -lt $tagArray.Count) {
+              # The previous version is the next entry after the current tag
+              $previousTag = $tagArray[$currentIndex + 1]
+              $previousVersion = $previousTag -replace '^v', ''
+            } else {
+              # No earlier tag found; treat as initial release
+              $previousVersion = "initial"
+            }
+          } else {
+            $previousVersion = "initial"
+          }
+          
+          "version=$previousVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          Write-Host "Previous version: $previousVersion"
+
+      - name: Init .NET
+        run: dotnet tool restore
+
+      - name: Generate release notes
+        run: dotnet cake --target GenerateReleaseNotes --release-version ${{ steps.extract-version.outputs.version }} --release-previous-version ${{ steps.find-previous.outputs.version }}
+
+      - name: Restore Docker image
+        run: dotnet cake --target Restore
+
+      - name: Find CD workflow run
+        id: find-cd
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const workflowFile = 'cd.yml';
+            const response = await github.rest.actions.listWorkflowRuns({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: workflowFile,
+              head_sha: context.sha,
+              status: 'success',
+              per_page: 1
+            });
+
+            if (!response.data.workflow_runs.length) {
+              throw new Error(`No successful ${workflowFile} run found for ${context.sha}.`);
+            }
+
+            core.setOutput('run_id', response.data.workflow_runs[0].id.toString());
+
+      - name: Download Chocolatey artifacts
+        uses: actions/download-artifact@v7
+        with:
+          name: chocolatey
+          run-id: ${{ steps.find-cd.outputs.run_id }}
+          repository: ${{ github.repository }}
+          path: artifacts/chocolatey
+
+      - name: Validate package artifact
+        shell: pwsh
+        run: |
+          $version = '${{ steps.extract-version.outputs.version }}'
+          $packagePath = "artifacts/chocolatey/packages/aws-vault.$version.nupkg"
+          if (-not (Test-Path $packagePath)) {
+            throw "Expected package not found: $packagePath"
+          }
+
+      - name: Publish Chocolatey package
+        env:
+          CHOCOLATEY_SERVER: ${{ vars.CHOCOLATEY_SERVER }}
+          CHOCOLATEY_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }}
+        run: docker compose run --rm --entrypoint "powershell -File ./build/chocolatey/package.push.ps1" chocolatey ${{ steps.extract-version.outputs.version }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2.5
+        with:
+          tag_name: v${{ steps.extract-version.outputs.version }}
+          name: v${{ steps.extract-version.outputs.version }}
+          body_path: artifacts/release-notes.md
+          draft: true
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Clean Cake
+        run: dotnet cake --target clean
+        if: always()
