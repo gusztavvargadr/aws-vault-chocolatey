@@ -22,7 +22,7 @@ This repository automates Chocolatey packaging of AWS Vault for Windows. It down
 
 **Build Task Flow**: Init → Restore (Docker build) → Build (native package generation) → Package (Docker test) → Publish (Docker push)
 
-**Release Workflow**: Update Submodule (detects new version) → PR (for review) → CD (build/test) → Tag push → Release (publish + GitHub release)
+**Release Workflow**: Update Submodule (detects new version) → PR (for review) → CD (build/test + artifact upload) → Tag push → Release (publish from CD artifact + GitHub release)
 
 ## Build and Test
 
@@ -91,11 +91,12 @@ dotnet cake --target Clean
 2. **CD workflow** (on PR/push to main):
    - Validates package builds successfully
    - Tests install/uninstall in Docker
-   - Uploads artifacts for review
+  - Uploads artifacts for review (30 day retention)
    
 3. **Release workflow** (on tag creation `v*`):
    - Generates release notes with git changelog
-   - Publishes to Chocolatey (if env vars configured)
+  - Downloads the CD artifact for the same commit and validates the `.nupkg`
+  - Publishes to Chocolatey (if env vars configured)
    - Creates GitHub release with generated notes
    
 **Sequential Version Processing**:
@@ -149,10 +150,11 @@ dotnet cake --target Clean
   1. Extracts version from tag
   2. Finds previous release tag
   3. Calls `GenerateReleaseNotes` Cake task (generates release notes with git changelog)
-  4. `dotnet cake --target package` - Builds final package
-  5. `dotnet cake --target publish --exclusive` - Publishes to Chocolatey
-  6. Creates GitHub release with generated release notes
-  7. `dotnet cake --target clean` - Cleanup
+  4. Finds the successful CD run for the same commit and downloads the `chocolatey` artifact
+  5. Validates `aws-vault.{version}.nupkg` is present in `artifacts/chocolatey/packages/`
+  6. Publishes to Chocolatey using the downloaded package
+  7. Creates GitHub release with generated release notes
+  8. `dotnet cake --target clean` - Cleanup
 
 **Required Secrets/Variables**:
 - Organization variable: `CHOCOLATEY_SERVER` (e.g., `https://push.chocolatey.org/`)
