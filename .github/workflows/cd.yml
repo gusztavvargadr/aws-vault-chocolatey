@@ -11,6 +11,10 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: write
+  pull-requests: read
+
 jobs:
   commit:
     name: Commit
@@ -20,6 +24,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           submodules: true
+          fetch-depth: 0
 
       - name: Init .NET
         run: dotnet tool restore
@@ -32,6 +37,78 @@ jobs:
         with:
           name: chocolatey
           path: artifacts/chocolatey/
+
+      - name: Read version from package.json
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        id: read-version
+        shell: pwsh
+        run: |
+          $packageJson = Get-Content ./build/chocolatey/package.json | ConvertFrom-Json
+          $version = $packageJson.Version
+          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          Write-Host "Version: $version"
+
+      - name: Find previous version
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        id: find-previous
+        shell: pwsh
+        run: |
+          # Get all tags in reverse chronological (descending version) order
+          $currentVersion = '${{ steps.read-version.outputs.version }}'
+          $allTags = git tag -l --sort=-version:refname
+          
+          # Safely parse the current version; if it is not a valid semantic version, fall back to "initial"
+          $parsedCurrentVersion = $null
+          if (-not [System.Version]::TryParse($currentVersion, [ref]$parsedCurrentVersion)) {
+            Write-Warning "Current version '$currentVersion' is not a valid semantic version. Treating as initial release."
+            $previousVersion = "initial"
+          } elseif ($allTags) {
+            # Ensure we are working with an array for indexing
+            $tagArray = @($allTags)
+            # Find the first tag that is older than the current version (use semantic version comparison)
+            # Skip tags that do not contain a valid semantic version
+            $previousTag = $tagArray | Where-Object {
+              if ($_ -match '^v(.+)$') {
+                $tagVersion = $null
+                [System.Version]::TryParse($Matches[1], [ref]$tagVersion) -and $tagVersion -lt $parsedCurrentVersion
+              } else {
+                $false
+              }
+            } | Select-Object -First 1
+            
+            if ($previousTag) {
+              $previousVersion = $previousTag -replace '^v', ''
+            } else {
+              # No earlier tag found; treat as initial release
+              $previousVersion = "initial"
+            }
+          } else {
+            $previousVersion = "initial"
+          }
+          
+          "version=$previousVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          Write-Host "Previous version: $previousVersion"
+
+      - name: Generate release notes for draft
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: dotnet cake --target GenerateDraftReleaseNotes --release-version ${{ steps.read-version.outputs.version }} --release-previous-version ${{ steps.find-previous.outputs.version }}
+
+      - name: Create or update draft release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.read-version.outputs.version }}
+          name: v${{ steps.read-version.outputs.version }}
+          body_path: artifacts/release-notes.md
+          draft: true
+          prerelease: false
+          # Note: The git tag does not exist at this point. It will be created when the draft release is published.
+          # The target_commitish specifies which commit the tag should point to when it's created during publishing.
+          target_commitish: ${{ github.sha }}
+          # If a draft release already exists for this tag, it will be updated.
+          # If a published release exists, this step will fail (expected behavior - manual intervention required).
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
       - name: Clean Cake
         run: dotnet cake --target clean

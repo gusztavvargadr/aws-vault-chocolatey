@@ -39,8 +39,8 @@ dotnet cake --source-version 7.10.0
 # Test full workflow including install/uninstall
 dotnet cake --target Package
 
-# Generate release notes for a version
-dotnet cake --target GenerateReleaseNotes --release-version 7.9.6 --release-previous-version 7.9.5
+# Generate draft release notes (uses recent commits, no tags required)
+dotnet cake --target GenerateDraftReleaseNotes --release-version 7.9.6 --release-previous-version 7.9.5
 
 # Publish (requires env vars)
 $env:CHOCOLATEY_SERVER = "https://push.chocolatey.org/"
@@ -69,7 +69,7 @@ dotnet cake --target Clean
 **Release Notes**:
 - Template: [build/release-template.md](../build/release-template.md) with placeholders (`{{VERSION}}`, `{{PREVIOUS_VERSION}}`, `{{AUTHOR}}`, `{{CHANGELOG}}`)
 - Generator: [build/New-ReleaseNotes.ps1](../build/New-ReleaseNotes.ps1) performs variable substitution and generates changelog from git history
-- Cake Task: `GenerateReleaseNotes` task generates final release notes to `artifacts/release-notes.md`
+- Cake Task: `GenerateDraftReleaseNotes` generates release notes using recent commits (no git tags required)
 
 **Binary Verification**: Build task runs `aws-vault.exe --version` and validates output matches `v{project-version}` before proceeding.
 
@@ -87,29 +87,45 @@ dotnet cake --target Clean
    - Detects next missing version (not latest, enables sequential processing)
    - Auto-creates PR with version bump in package.json
    - Updates submodule to that release tag
+   - Enables auto-merge on PR (requires `GH_PAT` secret, uses squash merge)
    
 2. **CD workflow** (on PR/push to main):
    - Validates package builds successfully
    - Tests install/uninstall in Docker
-  - Uploads artifacts for review (30 day retention)
+   - Uploads artifacts for review (30 day retention)
+   - **On main branch**: Creates draft GitHub release with full release notes (tag not created yet)
    
-3. **Release workflow** (on tag creation `v*`):
-   - Generates release notes with git changelog
-  - Downloads the CD artifact for the same commit and validates the `.nupkg`
-  - Publishes to Chocolatey (if env vars configured)
-   - Creates GitHub release with generated notes
+3. **Manual Review and Release**:
+   - Review draft release at `https://github.com/gusztavvargadr/aws-vault-chocolatey/releases`
+   - Manually publish the draft release in GitHub UI (this creates the git tag and triggers the Release workflow)
+   - The Release workflow downloads the CD artifact and publishes to Chocolatey
+   
+4. **Release workflow** (on tag creation `v*`):
+   - Downloads the CD artifact for the same commit and validates the `.nupkg`
+   - Publishes to Chocolatey (if env vars configured)
+   - Skips release publishing if already published (normal case when triggered by manual publish)
+   - Publishes draft release if still in draft state (edge case)
+   - Creates new release if none exists (fallback for manual tags)
    
 **Sequential Version Processing**:
 - [Get-NextVersion.ps1](../build/Get-NextVersion.ps1) compares current version (in package.json) against all GitHub releases
 - Returns only the earliest missing version (e.g., if at 7.9.5, returns 7.9.6, not 7.9.7)
 - Prevents version skipping; enables sequential release of backlogs
-- Workflow re-runs after each tag push to detect and process next version
+- Auto-merge ensures PRs are automatically merged after CD passes (when `GH_PAT` configured)
+- Workflow re-runs after each merge/tag to detect and process next version
 
 **Release Notes Generation**:
 - Template: [release-template.md](../build/release-template.md)
 - Generator: [New-ReleaseNotes.ps1](../build/New-ReleaseNotes.ps1)
-- Cake task: `GenerateReleaseNotes --release-version X --release-previous-version Y`
-- Includes git changelog (commits between tags) in the overview section
+- Cake Task: `GenerateDraftReleaseNotes` used by CD workflow to create draft releases with notes (uses recent 20 commits, no git tags required)
+- Parses commit messages to extract PR information (format: "Title (#123) (Author)")
+- Includes git-based changelog in the overview section
+
+**Auto-Merge Configuration**:
+- Requires `GH_PAT` secret with `repo` and `workflow` permissions
+- Falls back gracefully if `GH_PAT` not configured (PRs still created, manual merge required)
+- Uses squash merge strategy for clean git history
+- Requires branch protection on `main` with required status checks (CD workflow)
 
 ## Integration Points
 
@@ -128,37 +144,44 @@ dotnet cake --target Clean
 **Continuous Delivery** ([.github/workflows/cd.yml](../.github/workflows/cd.yml)):
 - Runs on `windows-2022` runners
 - Triggers: Push to `main` branch or PR to `main`
+- Permissions: `contents: write`, `pull-requests: read`
 - Steps:
   1. `dotnet tool restore` - Restores Cake 4.1.0
   2. `dotnet cake --target package` - Builds and tests package
   3. Uploads `.nupkg` artifacts to GitHub
-  4. `dotnet cake --target clean` - Cleanup (always runs)
+  4. **On main branch only**: Reads version, finds previous version, generates release notes, creates draft release
+  5. `dotnet cake --target clean` - Cleanup (always runs)
 
 **Check for Updates** ([.github/workflows/check-for-updates.yml](../.github/workflows/check-for-updates.yml)):
-- Runs on schedule (daily at 9 AM UTC) or manual dispatch
+- Runs on schedule (daily at 6 AM UTC) or manual dispatch
+- Permissions: `contents: write`, `pull-requests: write`
 - Steps:
   1. Calls `Get-NextVersion.ps1` to detect next missing version (not latest)
   2. Updates submodule to that specific release tag
   3. Updates version in [package.json](../build/chocolatey/package.json)
   4. Creates PR with changes (labels: automation, dependencies)
-  5. If no missing versions, exits gracefully
+  5. Enables auto-merge with squash strategy (if `GH_PAT` configured)
+  6. If no missing versions, exits gracefully
 - Enables sequential processing of multiple releases (one PR per version)
 
 **Release** ([.github/workflows/release.yml](../.github/workflows/release.yml)):
 - Triggered on tag creation (pattern: `v*`)
+- Permissions: `contents: write`, `actions: read`
 - Steps:
   1. Extracts version from tag
-  2. Finds previous release tag
-  3. Calls `GenerateReleaseNotes` Cake task (generates release notes with git changelog)
-  4. Finds the successful CD run for the same commit and downloads the `chocolatey` artifact
-  5. Validates `aws-vault.{version}.nupkg` is present in `artifacts/chocolatey/packages/`
-  6. Publishes to Chocolatey using the downloaded package
-  7. Creates GitHub release with generated release notes
-  8. `dotnet cake --target clean` - Cleanup
+  2. Finds the successful CD run for the same commit and downloads the `chocolatey` artifact
+  3. Validates `aws-vault.{version}.nupkg` is present in `artifacts/chocolatey/packages/`
+  4. Publishes to Chocolatey using the downloaded package
+  5. Checks for existing draft release and publishes it (or creates new release if missing)
+  6. `dotnet cake --target clean` - Cleanup
 
 **Required Secrets/Variables**:
 - Organization variable: `CHOCOLATEY_SERVER` (e.g., `https://push.chocolatey.org/`)
 - Repository secret: `CHOCOLATEY_API_KEY` (Chocolatey API key)
+- Repository secret: `GH_PAT` (optional but recommended) - GitHub Personal Access Token with `repo` and `workflow` permissions
+  - Enables auto-merge for update PRs
+  - Allows workflows to trigger on PR events created by automation
+  - Falls back to `github.token` if not configured (auto-merge disabled)
 
 **Concurrency Control**: All workflows cancel in-progress runs when new commits pushed to same branch.
 
@@ -201,11 +224,11 @@ dotnet cake --target Package --source-version 7.10.0
 dotnet cake --target Clean
 dotnet cake --target Package --source-version 7.9.5
 
-# Generate release notes locally
-dotnet cake --target GenerateReleaseNotes --release-version 7.9.6 --release-previous-version 7.9.5
+# Generate draft release notes (uses recent commits, no tags required)
+dotnet cake --target GenerateDraftReleaseNotes --release-version 7.9.6 --release-previous-version 7.9.5
 
 # Test release notes with custom author (defaults to aws-vault-chocolatey)
-dotnet cake --target GenerateReleaseNotes --release-version 7.9.6 --release-previous-version 7.9.5 --release-author "your-name"
+dotnet cake --target GenerateDraftReleaseNotes --release-version 7.9.6 --release-previous-version 7.9.5 --release-author "your-name"
 
 # Local publish test (requires env vars)
 $env:CHOCOLATEY_SERVER = "http://localhost:8080"  # Local server
@@ -234,3 +257,26 @@ gh workflow run check-for-updates.yml
 - Use helper functions for repeated operations (see `RunDockerCommand()`)
 - Capture both stdout and stderr for Docker commands
 - Check exit codes explicitly and throw exceptions on failure
+
+## Documentation Maintenance
+
+**Keep Instructions Current**: When making changes to the build system, workflows, or project structure, always update [.github/copilot-instructions.md](../.github/copilot-instructions.md) to reflect:
+- New or removed Cake tasks
+- Changes to workflow behavior or triggers
+- Updates to build conventions or patterns
+- New scripts or configuration files
+- Modified dependencies or tool versions
+
+**Documentation Scope**:
+- Architecture and component overview
+- Build task descriptions and usage examples
+- Workflow orchestration and automation
+- Local development setup and common operations
+- Integration points and configuration requirements
+
+**Update Checklist**:
+- Remove references to deprecated tasks or scripts
+- Add examples for new functionality
+- Update file paths if files are moved or renamed
+- Revise workflow descriptions when CI/CD changes
+- Keep tool version numbers current

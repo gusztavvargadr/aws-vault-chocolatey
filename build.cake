@@ -129,7 +129,7 @@ Task("Publish")
     RunDockerCommand($"compose run --rm --entrypoint \"powershell -File ./build/chocolatey/package.push.ps1\" chocolatey {packageVersion}");
   });
 
-Task("GenerateReleaseNotes")
+Task("GenerateDraftReleaseNotes")
   .Does(() => {
     var releaseNotesVersion = Argument("release-version", sourceVersion);
     var releasePreviousVersion = Argument("release-previous-version", "");
@@ -145,18 +145,20 @@ Task("GenerateReleaseNotes")
     // Ensure artifacts directory exists
     EnsureDirectoryExists(artifactsDir);
 
-    Information($"Generating release notes for version '{releaseNotesVersion}'");
+    Information($"Generating draft release notes for version '{releaseNotesVersion}'");
     Information($"Previous version: '{releasePreviousVersion}'");
     Information($"Author: '{releaseAuthor}'");
 
     // Generate changelog from git
+    // Note: Uses recent commits as best-effort changelog since tags may not exist yet during draft creation.
+    // The previousVersion parameter is still used for documentation context in the release notes template.
     var changelog = "";
     if (releasePreviousVersion != "initial") {
       try {
         using(var process = StartAndReturnProcess(
           "git",
           new ProcessSettings {
-            Arguments = $"log v{releasePreviousVersion}..v{releaseNotesVersion} --pretty=format:\"%s (%an)\"",
+            Arguments = $"log --pretty=format:\"%s (%an)\" -n 20",
             RedirectStandardOutput = true,
             RedirectStandardError = true,
           }
