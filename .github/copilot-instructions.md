@@ -87,7 +87,7 @@ dotnet cake --target Clean
    - Detects next missing version (not latest, enables sequential processing)
    - Auto-creates PR with version bump in package.json
    - Updates submodule to that release tag
-   - Enables auto-merge on PR (requires `GH_PAT` secret, uses squash merge)
+   - Enables auto-merge on PR (uses squash merge)
    
 2. **CD workflow** (on PR/push to main):
    - Validates package builds successfully
@@ -111,7 +111,7 @@ dotnet cake --target Clean
 - [Get-NextVersion.ps1](../build/Get-NextVersion.ps1) compares current version (in package.json) against all GitHub releases
 - Returns only the earliest missing version (e.g., if at 7.9.5, returns 7.9.6, not 7.9.7)
 - Prevents version skipping; enables sequential release of backlogs
-- Auto-merge ensures PRs are automatically merged after CD passes (when `GH_PAT` configured)
+- Auto-merge ensures PRs are automatically merged after CD passes
 - Workflow re-runs after each merge/tag to detect and process next version
 
 **Release Notes Generation**:
@@ -122,8 +122,7 @@ dotnet cake --target Clean
 - Includes git-based changelog in the overview section
 
 **Auto-Merge Configuration**:
-- Requires `GH_PAT` secret with `repo` and `workflow` permissions
-- Falls back gracefully if `GH_PAT` not configured (PRs still created, manual merge required)
+- Uses `GITHUB_TOKEN` with `contents: write` and `pull-requests: write` permissions
 - Uses squash merge strategy for clean git history
 - Requires branch protection on `main` with required status checks (CD workflow)
 
@@ -160,7 +159,7 @@ dotnet cake --target Clean
   2. Updates submodule to that specific release tag
   3. Updates version in [package.json](../build/chocolatey/package.json)
   4. Creates PR with changes (labels: automation, dependencies)
-  5. Enables auto-merge with squash strategy (if `GH_PAT` configured)
+  5. Enables auto-merge with squash strategy
   6. If no missing versions, exits gracefully
 - Enables sequential processing of multiple releases (one PR per version)
 
@@ -178,10 +177,6 @@ dotnet cake --target Clean
 **Required Secrets/Variables**:
 - Organization variable: `CHOCOLATEY_SERVER` (e.g., `https://push.chocolatey.org/`)
 - Repository secret: `CHOCOLATEY_API_KEY` (Chocolatey API key)
-- Repository secret: `GH_PAT` (optional but recommended) - GitHub Personal Access Token with `repo` and `workflow` permissions
-  - Enables auto-merge for update PRs
-  - Allows workflows to trigger on PR events created by automation
-  - Falls back to `github.token` if not configured (auto-merge disabled)
 
 **Concurrency Control**: All workflows cancel in-progress runs when new commits pushed to same branch.
 
