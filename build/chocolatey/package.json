@@ -1,5 +1,5 @@
 {
-  "Version": "7.10.0",
+  "Version": "7.10.1",
   "Id": "aws-vault",
   "Title": "AWS Vault",
   "ProjectSourceUrl": "https://github.com/ByteNess/aws-vault",
