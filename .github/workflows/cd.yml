@@ -39,7 +39,7 @@ jobs:
           path: artifacts/chocolatey/
 
       - name: Read version from package.json
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main'
         id: read-version
         shell: pwsh
         run: |
@@ -49,7 +49,7 @@ jobs:
           Write-Host "Version: $version"
 
       - name: Find previous version
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main'
         id: find-previous
         shell: pwsh
         run: |
@@ -90,11 +90,11 @@ jobs:
           Write-Host "Previous version: $previousVersion"
 
       - name: Generate release notes for draft
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main'
         run: dotnet cake --target GenerateDraftReleaseNotes --release-version ${{ steps.read-version.outputs.version }} --release-previous-version ${{ steps.find-previous.outputs.version }}
 
       - name: Create or update draft release
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.read-version.outputs.version }}
