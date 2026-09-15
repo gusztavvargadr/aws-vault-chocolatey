@@ -45,6 +45,7 @@ void RunDockerCommand(string arguments) {
 }
 
 Task("Init")
+  .Description("Print the versions in play and the state of Docker.")
   .Does(() => {
     Information($"Source version: '{sourceVersion}'.");
     Information($"Build version: '{buildVersion}'.");
@@ -60,6 +61,7 @@ Task("Init")
   });
 
 Task("Restore")
+  .Description("Build the Windows container image the Chocolatey steps run in.")
   .IsDependentOn("Init")
   .Does(() => {
     // No longer need Chef installation
@@ -68,6 +70,7 @@ Task("Restore")
   });
 
 Task("Build")
+  .Description("Generate the package directory and prove the binary reports the expected version.")
   .IsDependentOn("Restore")
   .Does(() => {
     // Set environment variables for PowerShell script
@@ -111,6 +114,7 @@ Task("Build")
   });
 
 Task("Package")
+  .Description("Pack the package and prove it installs and uninstalls in a clean container.")
   .IsDependentOn("Build")
   .Does(() => {
     RunDockerCommand($"compose run --rm --entrypoint \"powershell -File ./build/chocolatey/package.pack.ps1\" chocolatey");
@@ -119,6 +123,7 @@ Task("Package")
   });
 
 Task("Publish")
+  .Description("Push the packed package to the configured Chocolatey server.")
   .IsDependentOn("Package")
   .Does(() => {
     if (string.IsNullOrEmpty(chocolateyServer)) {
@@ -130,6 +135,7 @@ Task("Publish")
   });
 
 Task("GenerateDraftReleaseNotes")
+  .Description("Render the release notes for a version from the template and the git log.")
   .Does(() => {
     var releaseNotesVersion = Argument("release-version", sourceVersion);
     var releasePreviousVersion = Argument("release-previous-version", "");
@@ -207,6 +213,7 @@ Task("GenerateDraftReleaseNotes")
   });
 
 Task("Clean")
+  .Description("Remove the artifacts, and prune Docker containers, images, and build cache.")
   .IsDependentOn("Init")
   .Does(() => {
     RunDockerCommand("container prune -f");
