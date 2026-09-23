@@ -20,18 +20,13 @@ choco install aws-vault
 
 ## Asking
 
-The documents in this repository already answer the questions below, and `guides-g` is what finds the right one. So start a session here and ask, rather than reading a copy of the answer that can go stale:
+The documents in this repository already answer anything else about it. So start a session here and ask, rather than reading a copy of the answer that can go stale:
 
 ```
-Compose /guides-g and tell me: how does a new upstream release become a published package?
+What is this repository for?
 ```
 
-Swap in whichever question you have.
-
-- What is this for, and what is deliberately not?
-- What do I need on my machine to build the package?
-- What do I run to build and test it?
-- What has to pass before a change lands?
+Any other question is asked the same way.
 
 An agent starts at [AGENTS.md](AGENTS.md) instead, which names the document that answers each category.
 
