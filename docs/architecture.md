@@ -32,7 +32,7 @@ The two halves exchange one thing. `docker-compose.yml` mounts the repository at
 Three GitHub Actions workflows run the repository, and they hand work to each other through artifacts and tags rather than calling each other.
 
 - **Check for Updates** runs daily on Linux. It asks the GitHub API for upstream releases, takes the earliest one this package does not have, points the submodule at that tag, writes the version into `package.json`, opens a pull request, and turns on auto-merge.
-- **Continuous Delivery** runs on Windows for every pull request and every push to `main`. It runs `dotnet cake --target package` and uploads the result as the `chocolatey` artifact. On `main` it also creates a draft GitHub release from generated notes, and creates no tag.
+- **Continuous Delivery** runs on Windows for every pull request and every push to `main`. It runs `dotnet cake --target package` and uploads the result as the `chocolatey` artifact. On `main`, it creates or updates a draft GitHub release from generated notes when the package version has no published release, and creates no tag.
 - **Release** runs on Windows when a `v*` tag appears, which happens when the maintainer publishes that draft. It finds the successful Continuous Delivery run for the same commit, downloads its `chocolatey` artifact, and pushes that file to the Chocolatey feed.
 
 The tag is the handoff between the second and the third. Publishing the draft release is the only manual step, and it is what makes the package public.

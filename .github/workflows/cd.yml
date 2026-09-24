@@ -48,8 +48,32 @@ jobs:
           "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
           Write-Host "Version: $version"
 
-      - name: Find previous version
+      - name: Check for published release
         if: github.ref == 'refs/heads/main'
+        id: check-release
+        uses: actions/github-script@v8
+        env:
+          PACKAGE_VERSION: ${{ steps.read-version.outputs.version }}
+        with:
+          script: |
+            const tag = `v${process.env.PACKAGE_VERSION}`;
+            try {
+              const { data: release } = await github.rest.repos.getReleaseByTag({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                tag
+              });
+              const published = !release.draft;
+              core.setOutput('published', String(published));
+              core.info(published ? `${tag} is already published` : `${tag} is a draft`);
+            } catch (error) {
+              if (error.status !== 404) throw error;
+              core.setOutput('published', 'false');
+              core.info(`${tag} has no release`);
+            }
+
+      - name: Find previous version
+        if: github.ref == 'refs/heads/main' && steps.check-release.outputs.published == 'false'
         id: find-previous
         shell: pwsh
         run: |
@@ -90,11 +114,11 @@ jobs:
           Write-Host "Previous version: $previousVersion"
 
       - name: Generate release notes for draft
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' && steps.check-release.outputs.published == 'false'
         run: dotnet cake --target GenerateDraftReleaseNotes --release-version ${{ steps.read-version.outputs.version }} --release-previous-version ${{ steps.find-previous.outputs.version }}
 
       - name: Create or update draft release
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' && steps.check-release.outputs.published == 'false'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.read-version.outputs.version }}
@@ -106,7 +130,6 @@ jobs:
           # The target_commitish specifies which commit the tag should point to when it's created during publishing.
           target_commitish: ${{ github.sha }}
           # If a draft release already exists for this tag, it will be updated.
-          # If a published release exists, this step will fail (expected behavior - manual intervention required).
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
