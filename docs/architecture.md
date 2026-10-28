@@ -1,5 +1,9 @@
 # Architecture
 
+This document describes the shape of the build pipeline that makes the `aws-vault` Chocolatey package as it stands, and what stays true of it as it changes.
+
+## Input and output
+
 This repository is a build pipeline and nothing else. It turns one input, the upstream Windows binary, into one output, `aws-vault.<version>.nupkg`. No code here ships to anybody.
 
 ## Upstream tracking

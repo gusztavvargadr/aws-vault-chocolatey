@@ -1,8 +1,10 @@
 # Engineering
 
-The build is a Cake script in C# that calls PowerShell 7 scripts and a Windows container. There is no application code, no test framework, and no linter. The pipeline itself is the suite, which the [checks](#checks) below explain.
+This document describes how this repository is built, tested, and checked, and how a change to it is proven.
 
 ## Environment
+
+The build is a Cake script in C# that calls PowerShell 7 scripts and a Windows container. There is no application code, no test framework, and no linter. The pipeline itself is the suite, which the [checks](#checks) below explain.
 
 The full pipeline needs Windows. The container that runs every `choco` command is a Windows Server Core image, and the version check runs the packaged `.exe` directly. A macOS or Linux machine can read the repository and run `dotnet cake --description`, and cannot run `Build` or anything after it.
 
@@ -45,8 +47,6 @@ dotnet cake --target Package --source-version 7.13.0
 ## Checks
 
 There is no unit test suite to run red then green against. What stands in for one is the pipeline: it downloads the real binary, compares the version it reports against the version the package claims, packs it, and installs and uninstalls it in a clean container. A change that breaks any of that fails the target.
-
-The prediction still MUST come first. State what will fail and why before running the target, exactly as the engineering guide requires, because that is what separates a check from a command that happened to exit non-zero.
 
 Which change requires which check:
 
