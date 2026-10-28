@@ -1,8 +1,10 @@
 # Product
 
-This repository is the source of the [`aws-vault` Chocolatey package](https://chocolatey.org/packages/aws-vault). It is for Windows users who install and update their tools with Chocolatey and want [AWS Vault](https://github.com/ByteNess/aws-vault) among them.
+This document describes the why-how-what of this repository, the source of the [`aws-vault` Chocolatey package](https://chocolatey.org/packages/aws-vault).
 
 ## Why
+
+The repository is for Windows users who install and update their tools with Chocolatey and want [AWS Vault](https://github.com/ByteNess/aws-vault) among them.
 
 ByteNess builds AWS Vault for Windows and publishes the binary on GitHub releases. It does not publish it to Chocolatey.
 
@@ -29,18 +31,16 @@ Today this repository:
 - Installs and uninstalls that package in a Windows container before anyone sees it.
 - Publishes it to the Chocolatey community feed when the maintainer publishes the matching release.
 
+This repository is working when a new upstream release becomes a published Chocolatey package with one deliberate action from the maintainer, and a user updating through Chocolatey never notices that the two projects are separate.
+
+There is no end state. AWS Vault keeps releasing, and this keeps following. The sign it has stopped working is an upstream release that sits unpackaged for weeks, or a version that never gets published because its pull request went red and nobody noticed.
+
 Deliberately out:
 
 - Any platform other than Windows. Chocolatey is a Windows package manager, and the upstream project already serves macOS and Linux through other package managers.
 - Any package manager other than Chocolatey. A second one doubles the maintenance for the same binary.
 - Anything about how AWS Vault behaves: no wrapper, no default profile, no configuration of `~/.aws/config`. That belongs upstream, or to the person using the tool.
 - Any change to the binary. The package is a container for it and nothing more.
-
-## Direction
-
-This repository is working when a new upstream release becomes a published Chocolatey package with one deliberate action from the maintainer, and a user updating through Chocolatey never notices that the two projects are separate.
-
-There is no end state. AWS Vault keeps releasing, and this keeps following. The sign it has stopped working is an upstream release that sits unpackaged for weeks, or a version that never gets published because its pull request went red and nobody noticed.
 
 ## Terms
 

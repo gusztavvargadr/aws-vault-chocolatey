@@ -4,32 +4,11 @@
 [![GitHub latest release](https://img.shields.io/github/release/gusztavvargadr/aws-vault-chocolatey.svg)](https://github.com/gusztavvargadr/aws-vault-chocolatey/releases/latest)
 [![Chocolatey downloads](https://img.shields.io/chocolatey/dt/aws-vault.svg)](https://chocolatey.org/packages/aws-vault)
 
-This repository is the source of the [Chocolatey package] for [AWS Vault] by [ByteNess].
+This repository is the source of the [Chocolatey package](https://chocolatey.org/packages/aws-vault) for [AWS Vault](https://github.com/ByteNess/aws-vault) by [ByteNess](https://github.com/ByteNess).
 
-> AWS Vault is a tool to securely store and access AWS credentials in a development environment.
->
-> AWS Vault stores IAM credentials in your operating system's secure keystore and then generates temporary credentials from those to expose to your shell and applications. It's designed to be complementary to the AWS CLI tools, and is aware of your profiles and configuration in ~/.aws/config.
+## Guides
 
-For more about the tool itself, see [the original repository][AWS Vault].
-
-## Installing
-
-```powershell
-choco install aws-vault
-```
-
-## Asking
-
-The documents in this repository already answer anything else about it. So start a session here and ask, rather than reading a copy of the answer that can go stale:
-
-```
-What is this repository for?
-```
-
-Any other question is asked the same way.
-
-An agent starts at [AGENTS.md](AGENTS.md) instead, which names the document that answers each category.
-
-[Chocolatey package]: https://chocolatey.org/packages/aws-vault
-[AWS Vault]: https://github.com/ByteNess/aws-vault
-[ByteNess]:  https://github.com/ByteNess
+- [Product](docs/product.md): Why the package exists, and which AWS Vault releases it follows.
+- [Architecture](docs/architecture.md): The shape of the build pipeline that makes the package, and what stays true of it as it changes.
+- [Engineering](docs/engineering.md): How the repository is built, tested, and checked, and how a change to it is proven.
+- [Usage](docs/usage.md): How to install, use, upgrade, and remove the package.

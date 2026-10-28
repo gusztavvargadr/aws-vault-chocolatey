@@ -1,17 +1,19 @@
-# aws-vault-chocolatey
+# Agents
 
-This repository is the source of the [Chocolatey package](https://chocolatey.org/packages/aws-vault) for [AWS Vault](https://github.com/ByteNess/aws-vault). It packages an upstream Windows binary and publishes it, and contains no application code of its own.
+This file lists every guide an agent working in this repository reads, and when to read it.
 
-## Skill setup
+## Setup
 
-This repository expects the skills from [gusztavvargadr/skills](https://github.com/gusztavvargadr/skills), installed at user level and invoked by name. `guides-g` is the one that lists the guidance categories a skill loads. The install steps are in that repository's engineering document.
+This repository is set up with [gusztavvargadr/skills](https://github.com/gusztavvargadr/skills) at commit `efe121af650fc8b5b0095edf48ef5764a3be03b3`, installed at user level, so the guides the setup installs are read through `guides-g`.
 
-## Guidance
+## Guides
 
-`guides-g` contains the default for each category. These are the documents that answer the categories this repository answers.
-
-| Category | Document |
+| Guide | When to read it |
 | --- | --- |
-| product | [docs/product.md](docs/product.md) |
-| architecture | [docs/architecture.md](docs/architecture.md) |
-| engineering | [docs/engineering.md](docs/engineering.md) |
+| [Product](docs/product.md) | Before any change, to judge whether it belongs here. |
+| [Architecture](docs/architecture.md) | Before changing the shape of the system, and when checking a change against its invariants. |
+| [Engineering](docs/engineering.md) | Before building, testing, or checking a change. |
+| [Usage](docs/usage.md) | Before installing or using what the repository produces, or changing how it is used. |
+| The delivery guide `guides-g` lists | Before taking part in a delivery. |
+| The backlog guide `guides-g` lists | Before capturing, organizing, or promoting an idea. |
+| The writing guide `guides-g` lists | Before writing anything in this repository, or on its issues and pull requests. |
