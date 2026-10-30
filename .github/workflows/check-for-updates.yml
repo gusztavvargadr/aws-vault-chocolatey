@@ -33,6 +33,7 @@ jobs:
           $nextVersion = & ./build/Get-NextVersion.ps1 `
             -PackageJsonPath ./build/chocolatey/package.json `
             -Repository ByteNess/aws-vault `
+            -PackageRepository ${{ github.repository }} `
             -Token $env:GH_TOKEN
           
           "next-version=$nextVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
