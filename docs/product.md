@@ -16,9 +16,9 @@ The work of doing that falls on one maintainer, not on the user. It has to stay 
 
 **Repackage, do not fork.** The package ships the upstream binary exactly as ByteNess published it. Nothing here compiles, patches, or configures AWS Vault, and a bug in the tool goes to ByteNess. This is the belief the rest follows from: a repackager with no opinions of its own is cheap to keep running for years.
 
-**Automate up to the irreversible step.** A daily check finds a new upstream release, opens a pull request, and merges it once the package builds and installs cleanly. The maintainer publishes the draft release by hand. A push to the Chocolatey community feed is public and cannot be taken back, so a person stays in that one step on purpose.
+**Automate everything but two deliberate actions.** A daily check finds a new upstream release and opens a pull request that bumps the package to it, and that pull request's checks build the package and install it in a clean container. Each version then takes two deliberate actions from the maintainer: merging the bump, which creates a draft release, and publishing that draft, which pushes the package. Nothing merges a bump by itself, so a version reaches `main` only when the maintainer decides it should, and a push to the Chocolatey community feed is public and cannot be taken back, so a person stays in both steps on purpose.
 
-**One version at a time, in order.** The update check takes the earliest upstream release this package does not have yet, not the newest. Five upstream releases become five package versions rather than one jump, so the Chocolatey version history has no gaps and a user on an older version still has a path forward.
+**One version at a time, in order.** The update check takes the earliest upstream release this package does not have yet, not the newest. Five upstream releases become five package versions rather than one jump, so the Chocolatey version history has no gaps and a user on an older version still has a path forward. One bump is in progress at a time: the pull request for the next version opens only once the current version's release is published, so a maintainer who falls behind publishes each version in order, and no two bumps' drafts, notes, or runs clash.
 
 **Ship the binary inside the package.** The package includes the `.exe` and the checksums for it, rather than downloading it while installing. A Chocolatey moderator can then check what they are approving, and an install does not depend on GitHub being up.
 
@@ -31,7 +31,7 @@ Today this repository:
 - Installs and uninstalls that package in a Windows container before anyone sees it.
 - Publishes it to the Chocolatey community feed when the maintainer publishes the matching release.
 
-This repository is working when a new upstream release becomes a published Chocolatey package with one deliberate action from the maintainer, and a user updating through Chocolatey never notices that the two projects are separate.
+This repository is working when a new upstream release becomes a published Chocolatey package with the maintainer's two deliberate actions and nothing else from them, and a user updating through Chocolatey never notices that the two projects are separate.
 
 There is no end state. AWS Vault keeps releasing, and this keeps following. The sign it has stopped working is an upstream release that sits unpackaged for weeks, or a version that never gets published because its pull request went red and nobody noticed.
 
