@@ -10,8 +10,7 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
 
 jobs:
   detect-and-update:
@@ -67,7 +66,7 @@ jobs:
         if: steps.detect-version.outputs.next-version != ''
         uses: peter-evans/create-pull-request@v8
         with:
-          token: ${{ github.token }}
+          token: ${{ secrets.BUMP_TOKEN }}
           commit-message: 'chore: bump aws-vault to v${{ steps.detect-version.outputs.next-version }}'
           title: 'chore: bump aws-vault to v${{ steps.detect-version.outputs.next-version }}'
           body: |
@@ -84,11 +83,3 @@ jobs:
           labels: |
             automation
             dependencies
-
-      - name: Enable auto-merge
-        if: steps.detect-version.outputs.next-version != '' && steps.create-pr.outputs.pull-request-number != ''
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh pr merge --auto --squash ${{ steps.create-pr.outputs.pull-request-number }}
-          echo "Auto-merge enabled for PR #${{ steps.create-pr.outputs.pull-request-number }}"
