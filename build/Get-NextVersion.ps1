@@ -60,24 +60,21 @@ if ($Token) {
 }
 
 try {
-    # Open no later version until the current version's release is published
+    # Open no later version until the current version's release is published.
+    # The release-by-tag endpoint returns only published releases, so a draft
+    # answers 404 just like a missing release.
     $releaseTag = "v$($packageJson.Version)"
     Write-Host "Checking release $releaseTag in $PackageRepository..."
     $releaseUrl = "https://api.github.com/repos/$PackageRepository/releases/tags/$releaseTag"
-    $release = Invoke-RestMethod -Uri $releaseUrl -Headers $headers -SkipHttpErrorCheck -StatusCodeVariable releaseStatus
+    $null = Invoke-RestMethod -Uri $releaseUrl -Headers $headers -SkipHttpErrorCheck -StatusCodeVariable releaseStatus
 
     if ($releaseStatus -eq 404) {
-        Write-Host "Release $releaseTag is missing, so no later version is returned"
+        Write-Host "Release $releaseTag is missing or still a draft, so no later version is returned"
         Write-Output ""
         return
     }
     if ($releaseStatus -ne 200) {
         throw "Unexpected status $releaseStatus while reading release $releaseTag"
-    }
-    if ($release.draft) {
-        Write-Host "Release $releaseTag is still a draft, so no later version is returned"
-        Write-Output ""
-        return
     }
     Write-Host "Release $releaseTag is published"
 
