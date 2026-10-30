@@ -54,11 +54,13 @@ jobs:
           cd ../../..
 
       - name: Update package.json version
+        id: update-version
         if: steps.detect-version.outputs.next-version != ''
         shell: pwsh
         run: |
           $packageJsonPath = './build/chocolatey/package.json'
           $packageJson = Get-Content -Raw $packageJsonPath | ConvertFrom-Json
+          "previous-version=$($packageJson.Version)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
           $packageJson.Version = '${{ steps.detect-version.outputs.next-version }}'
           $packageJson | ConvertTo-Json -Depth 10 | Set-Content $packageJsonPath -Encoding utf8
 
@@ -68,19 +70,14 @@ jobs:
         uses: peter-evans/create-pull-request@v8
         with:
           token: ${{ secrets.BUMP_TOKEN }}
-          commit-message: 'chore: bump aws-vault to v${{ steps.detect-version.outputs.next-version }}'
-          title: 'chore: bump aws-vault to v${{ steps.detect-version.outputs.next-version }}'
+          commit-message: 'Bump aws-vault to ${{ steps.detect-version.outputs.next-version }}'
+          title: 'Bump aws-vault to ${{ steps.detect-version.outputs.next-version }}'
           body: |
-            Automated version bump for aws-vault upstream release.
-            
-            **Version**: v${{ steps.detect-version.outputs.next-version }}
-            
-            This PR updates the submodule and package configuration to track the next missing upstream release.
-            
-            ---
-            _Automated by Update Submodule workflow_
+            ## Summary
+
+            This packages aws-vault ${{ steps.detect-version.outputs.next-version }}, moving the submodule and `package.json` on from ${{ steps.update-version.outputs.previous-version }}.
+
+            - Release: https://github.com/ByteNess/aws-vault/releases/tag/v${{ steps.detect-version.outputs.next-version }}
+            - Changes: https://github.com/ByteNess/aws-vault/compare/v${{ steps.update-version.outputs.previous-version }}...v${{ steps.detect-version.outputs.next-version }}
           branch: chore/aws-vault-${{ steps.detect-version.outputs.next-version }}
           delete-branch: true
-          labels: |
-            automation
-            dependencies
