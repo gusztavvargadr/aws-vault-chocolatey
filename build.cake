@@ -135,81 +135,21 @@ Task("Publish")
   });
 
 Task("GenerateDraftReleaseNotes")
-  .Description("Render the release notes for a version from the template and the git log.")
+  .Description("Render the release notes for a version from the template and GitHub's generated release notes.")
   .Does(() => {
     var releaseNotesVersion = Argument("release-version", sourceVersion);
-    var releasePreviousVersion = Argument("release-previous-version", "");
-    var releaseAuthor = Argument("release-author", "aws-vault-chocolatey");
-    var artifactsDir = MakeAbsolute(Directory("./artifacts/"));
+    var releaseCommit = Argument("release-commit", "HEAD");
     var releaseNotesOutput = MakeAbsolute(File("./artifacts/release-notes.md")).FullPath;
 
-    if (string.IsNullOrEmpty(releasePreviousVersion)) {
-      Warning("Previous version not specified. Use --release-previous-version argument.");
-      return;
-    }
-
-    // Ensure artifacts directory exists
-    EnsureDirectoryExists(artifactsDir);
-
-    Information($"Generating draft release notes for version '{releaseNotesVersion}'");
-    Information($"Previous version: '{releasePreviousVersion}'");
-    Information($"Author: '{releaseAuthor}'");
-
-    // Generate changelog from git
-    // Note: Uses recent commits as best-effort changelog since tags may not exist yet during draft creation.
-    // The previousVersion parameter is still used for documentation context in the release notes template.
-    var changelog = "";
-    if (releasePreviousVersion != "initial") {
-      try {
-        using(var process = StartAndReturnProcess(
-          "git",
-          new ProcessSettings {
-            Arguments = $"log --pretty=format:\"%s (%an)\" -n 20",
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-          }
-        )) {
-          process.WaitForExit();
-          var commits = process.GetStandardOutput().ToList();
-          if (commits.Count > 0) {
-            var changelogLines = commits.Select(c => {
-              // Parse commit message to extract PR info
-              // Expected format: "Update for 7.9.2 (#105) (Author Name)"
-              var match = System.Text.RegularExpressions.Regex.Match(c, @"^(.+?)\s*\(#(\d+)\)\s*\((.+?)\)$");
-              if (match.Success) {
-                var title = match.Groups[1].Value;
-                var prId = match.Groups[2].Value;
-                var author = match.Groups[3].Value;
-                return $"- {title} by {author} in #{prId}";
-              }
-              return $"- {c}"; // Fallback if format doesn't match
-            });
-            changelog = string.Join(Environment.NewLine, changelogLines);
-          }
-        }
-      }
-      catch (Exception ex) {
-        Warning($"Failed to generate changelog from git: {ex.Message}");
-      }
-    }
-
-    var changelogArg = string.Empty;
-    if (!string.IsNullOrEmpty(changelog)) {
-      // Write changelog to a file and pass the file path to PowerShell to avoid multiline argument issues
-      var changelogFilePath = System.IO.Path.Combine(artifactsDir.FullPath, "changelog.txt");
-      System.IO.File.WriteAllText(changelogFilePath, changelog);
-      changelogArg = $"-ChangelogPath \"{changelogFilePath}\"";
-    }
+    EnsureDirectoryExists("./artifacts/");
 
     var result = StartProcess("pwsh", new ProcessSettings {
-      Arguments = $"-File ./build/New-ReleaseNotes.ps1 -TemplatePath ./build/release-template.md -Version {releaseNotesVersion} -PreviousVersion {releasePreviousVersion} -Author {releaseAuthor} {changelogArg} -OutputPath \"{releaseNotesOutput}\""
+      Arguments = $"-File ./build/New-ReleaseNotes.ps1 -TemplatePath ./build/release-template.md -Version {releaseNotesVersion} -Commit {releaseCommit} -OutputPath \"{releaseNotesOutput}\""
     });
 
     if (result != 0) {
       throw new Exception($"Release notes generation failed with exit code: {result}");
     }
-
-    Information($"Release notes written to: {releaseNotesOutput}");
   });
 
 Task("Clean")

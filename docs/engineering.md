@@ -56,7 +56,7 @@ Which change requires which check:
 | `New-ChocolateyPackage.ps1`, or anything about the package contents | `dotnet cake --target Package`, then read the generated `artifacts/chocolatey/packages/aws-vault/aws-vault.nuspec` and `tools/VERIFICATION.txt`. |
 | `build.cake` | `dotnet cake --description` and `dotnet cake --tree` first, because a broken dependency shows there without running anything, then `--target Package`. |
 | The `Dockerfile` | `dotnet cake --target Restore` to rebuild the image, then `--target Package`. |
-| `New-ReleaseNotes.ps1`, `Get-NextVersion.ps1`, or the release template | Run the script directly with arguments that reproduce the case, and read what it wrote. None of them is in the `Package` line. |
+| `New-ReleaseNotes.ps1`, `Get-NextVersion.ps1`, or the release template | Run the script directly with arguments that reproduce the case, and read what it wrote. None of them is in the `Package` line. `New-ReleaseNotes.ps1` asks GitHub for the notes it generates, so it needs `gh` signed in, or a token in `GH_TOKEN`. |
 | A workflow | Nothing local runs it. Push the branch and read the run. |
 | Documentation only | Read the changed text and every document that links to it. No command. |
 

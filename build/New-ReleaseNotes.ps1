@@ -1,23 +1,23 @@
 #!/usr/bin/env pwsh
 <#
 .SYNOPSIS
-Generates release notes from a template.
+Generates the release notes for a version from a template and GitHub's generated release notes.
 
 .DESCRIPTION
-Reads a release notes template and performs variable substitution with the
-provided parameters (version, previous version, and author).
+Finds the previous version as the highest v* tag below the version, asks GitHub to
+generate the release notes between that tag and the commit, and fills the template
+with them. GitHub's generated notes go in as they are, except their Full Changelog
+line, which the template states instead. Calling GitHub needs gh, signed in or given
+a token in GH_TOKEN.
 
 .PARAMETER TemplatePath
 Path to the release notes template file.
 
 .PARAMETER Version
-The current version being released.
+The version being released, without the v prefix.
 
-.PARAMETER PreviousVersion
-The previous version for changelog comparison.
-
-.PARAMETER Author
-The author/contributor name for the release (optional).
+.PARAMETER Commit
+The commit the release's tag points at. Defaults to HEAD.
 
 .PARAMETER OutputPath
 Path where the generated release notes will be written.
@@ -33,119 +33,61 @@ param(
     [Parameter(Mandatory = $true)]
     [string]$Version,
 
+    [Parameter(Mandatory = $false)]
+    [string]$Commit = "HEAD",
+
     [Parameter(Mandatory = $true)]
-    [string]$PreviousVersion,
-
-    [Parameter(Mandatory = $false)]
-    [string]$Author = "aws-vault-chocolatey",
-
-    [Parameter(Mandatory = $false)]
-    [string]$Changelog,
-
-    [Parameter(Mandatory = $false)]
-    [string]$ChangelogPath,
-
-    [Parameter(Mandatory = $false)]
     [string]$OutputPath
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-Write-Host "Generating release notes from template..."
-
-# Read template
 if (-not (Test-Path $TemplatePath)) {
     throw "Template file not found: $TemplatePath"
 }
 
 $template = Get-Content $TemplatePath -Raw
 
-# Load changelog from file if path provided
-if ($ChangelogPath -and (Test-Path $ChangelogPath)) {
-    $Changelog = Get-Content -Raw $ChangelogPath
+$parsedVersion = [System.Version]::Parse($Version)
+
+$commitSha = git rev-parse $Commit
+if ($LASTEXITCODE -ne 0) {
+    throw "Failed to resolve commit: $Commit"
 }
 
-# Generate changelog if not provided
-if ([string]::IsNullOrWhiteSpace($Changelog)) {
-    Write-Host "Generating changelog from git history..."
-    
-    if ($PreviousVersion -eq "initial") {
-        # Initial release - show all commits
-        Write-Host "Generating changelog for initial release..."
-        try {
-            $commits = git log --pretty=format:"%s (%an)" 2>$null
-            if ($commits) {
-                # Parse each commit to extract PR info
-                # Expected format: "Update for 7.9.2 (#105) (Author Name)"
-                $changelogLines = @()
-                foreach ($commit in @($commits)) {
-                    if ($commit -match '^(.+?)\s*\(#(\d+)\)\s*\((.+?)\)$') {
-                        $title = $matches[1]
-                        $prId = $matches[2]
-                        $author = $matches[3]
-                        $changelogLines += "- $title by $author in #$prId"
-                    } else {
-                        $changelogLines += "- $commit"
-                    }
-                }
-                $Changelog = $changelogLines -join "`n"
-            } else {
-                $Changelog = "Initial release"
-            }
-        }
-        catch {
-            Write-Warning "Failed to generate changelog: $_"
-            $Changelog = "Initial release"
-        }
-    }
-    else {
-        # Compare against previous version
-        Write-Host "Generating changelog between v$PreviousVersion and v$Version..."
-        try {
-            # Try to find commits between the tags
-            $commits = git log "v$PreviousVersion..v$Version" --pretty=format:"%s (%an)" 2>$null
-            if (-not $commits) {
-                # If no commits found between tags, try without v prefix
-                $commits = git log "$PreviousVersion..$Version" --pretty=format:"%s (%an)" 2>$null
-            }
-            if ($commits) {
-                # Parse each commit to extract PR info
-                # Expected format: "Update for 7.9.2 (#105) (Author Name)"
-                $changelogLines = @()
-                foreach ($commit in @($commits)) {
-                    if ($commit -match '^(.+?)\s*\(#(\d+)\)\s*\((.+?)\)$') {
-                        $title = $matches[1]
-                        $prId = $matches[2]
-                        $author = $matches[3]
-                        $changelogLines += "- $title by $author in #$prId"
-                    } else {
-                        $changelogLines += "- $commit"
-                    }
-                }
-                $Changelog = $changelogLines -join "`n"
-            } else {
-                Write-Host "No commits found between v$PreviousVersion and v$Version"
-                $Changelog = "See full changelog in resources below"
-            }
-        }
-        catch {
-            Write-Warning "Failed to generate changelog: $_"
-            $Changelog = "See full changelog in resources below"
-        }
-    }
+$tags = @(git tag -l 'v*')
+if ($LASTEXITCODE -ne 0) {
+    throw "Failed to list tags."
 }
-# Perform variable substitution
+
+$previousVersion = $tags |
+    ForEach-Object {
+        $tagVersion = $null
+        if ([System.Version]::TryParse($_.Substring(1), [ref]$tagVersion) -and $tagVersion -lt $parsedVersion) {
+            $tagVersion
+        }
+    } |
+    Sort-Object -Descending |
+    Select-Object -First 1
+
+if (-not $previousVersion) {
+    throw "No v* tag found below version $Version."
+}
+
+Write-Host "Generating release notes for v$Version at $commitSha since v$previousVersion..."
+
+$generatedNotes = gh api 'repos/{owner}/{repo}/releases/generate-notes' -f "tag_name=v$Version" -f "target_commitish=$commitSha" -f "previous_tag_name=v$previousVersion" --jq '.body'
+if ($LASTEXITCODE -ne 0) {
+    throw "Failed to generate release notes from GitHub."
+}
+
+$contributions = (($generatedNotes -join "`n") -replace '(?m)^\*\*Full Changelog\*\*: .*$', '').Trim()
+
 $releaseNotes = ($template.
     Replace('{{VERSION}}', $Version).
-    Replace('{{PREVIOUS_VERSION}}', $PreviousVersion).
-    Replace('{{AUTHOR}}', $Author).
-    Replace('{{CHANGELOG}}', $Changelog))
+    Replace('{{PREVIOUS_VERSION}}', "$previousVersion").
+    Replace('{{CONTRIBUTIONS}}', $contributions))
 
-if ($OutputPath) {
-    Write-Host "Writing release notes to: $OutputPath"
-    $releaseNotes | Out-File -FilePath $OutputPath -Encoding utf8
-}
-else {
-    Write-Output $releaseNotes
-}
+Write-Host "Writing release notes to: $OutputPath"
+$releaseNotes | Out-File -FilePath $OutputPath -Encoding utf8 -NoNewline

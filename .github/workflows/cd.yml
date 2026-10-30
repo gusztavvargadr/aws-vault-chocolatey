@@ -72,50 +72,11 @@ jobs:
               core.info(`${tag} has no release`);
             }
 
-      - name: Find previous version
-        if: github.ref == 'refs/heads/main' && steps.check-release.outputs.published == 'false'
-        id: find-previous
-        shell: pwsh
-        run: |
-          # Get all tags in reverse chronological (descending version) order
-          $currentVersion = '${{ steps.read-version.outputs.version }}'
-          $allTags = git tag -l --sort=-version:refname
-          
-          # Safely parse the current version; if it is not a valid semantic version, fall back to "initial"
-          $parsedCurrentVersion = $null
-          if (-not [System.Version]::TryParse($currentVersion, [ref]$parsedCurrentVersion)) {
-            Write-Warning "Current version '$currentVersion' is not a valid semantic version. Treating as initial release."
-            $previousVersion = "initial"
-          } elseif ($allTags) {
-            # Ensure we are working with an array for indexing
-            $tagArray = @($allTags)
-            # Find the first tag that is older than the current version (use semantic version comparison)
-            # Skip tags that do not contain a valid semantic version
-            $previousTag = $tagArray | Where-Object {
-              if ($_ -match '^v(.+)$') {
-                $tagVersion = $null
-                [System.Version]::TryParse($Matches[1], [ref]$tagVersion) -and $tagVersion -lt $parsedCurrentVersion
-              } else {
-                $false
-              }
-            } | Select-Object -First 1
-            
-            if ($previousTag) {
-              $previousVersion = $previousTag -replace '^v', ''
-            } else {
-              # No earlier tag found; treat as initial release
-              $previousVersion = "initial"
-            }
-          } else {
-            $previousVersion = "initial"
-          }
-          
-          "version=$previousVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-          Write-Host "Previous version: $previousVersion"
-
       - name: Generate release notes for draft
         if: github.ref == 'refs/heads/main' && steps.check-release.outputs.published == 'false'
-        run: dotnet cake --target GenerateDraftReleaseNotes --release-version ${{ steps.read-version.outputs.version }} --release-previous-version ${{ steps.find-previous.outputs.version }}
+        run: dotnet cake --target GenerateDraftReleaseNotes --release-version ${{ steps.read-version.outputs.version }}
+        env:
+          GH_TOKEN: ${{ github.token }}
 
       - name: Create or update draft release
         if: github.ref == 'refs/heads/main' && steps.check-release.outputs.published == 'false'
