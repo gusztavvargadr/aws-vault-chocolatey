@@ -6,7 +6,7 @@
 - The .NET SDK, to run [Cake](https://cakebuild.net).
 - PowerShell 7.
 
-Elsewhere, only `dotnet cake --description` and `dotnet cake --tree` run.
+Elsewhere, `Restore` and every target after it can't run.
 
 ## Build
 
@@ -15,8 +15,8 @@ dotnet tool restore
 dotnet cake [--target <target>]
 ```
 
-- `--description` lists the targets, and `--tree` shows their order. A target runs every target before it.
-- `Package`, the default, downloads the binary, checks the version it reports against the package's, packs it, and installs and uninstalls it in a clean container.
+- `--description` lists the targets, and `--tree` shows what each one runs first.
+- `Package`, the default, downloads the binary, checks the version it reports against the upstream version, packs it, and installs and uninstalls it in a clean container.
 - `--source-version` packages another upstream release than the one in `build/chocolatey/package.json`, and `--package-version` sets the version the package is published under.
 
 ## Checks
@@ -30,8 +30,8 @@ Each pull request runs `Package` in Continuous Delivery, and isn't done until it
 ## Rules
 
 - The packaged `.exe` is the file ByteNess published, unmodified.
-- `build/chocolatey/package.json` is the only place that states the upstream version.
-- A package whose binary reports another version than the package's is never produced.
+- `build/chocolatey/package.json` is the only place that states the upstream version, and only Check for Updates changes it.
+- A package whose binary reports another version than the upstream version is never produced.
 - The feed only gets the exact file a passing Continuous Delivery run built. Nothing rebuilds it at release.
 - Every `choco` command runs in the container.
 - A workflow has no build logic of its own. It calls a `build.cake` target or a script under `build/`.
@@ -39,7 +39,7 @@ Each pull request runs `Package` in Continuous Delivery, and isn't done until it
 
 ## Conventions
 
-- A script under `build/` opens with comment-based help, then `param()`, then `Set-StrictMode -Version Latest` and `$ErrorActionPreference = 'Stop'`. The thin `package.*.ps1` scripts are the exception. A script writes to the output path it is given.
+- A script under `build/` opens with comment-based help, then `param()`, then `Set-StrictMode -Version Latest` and `$ErrorActionPreference = 'Stop'`. The thin `package.*.ps1` scripts are the exception. A script that takes an output path writes there.
 - Every Cake task has a `.Description()`. Every `docker` call goes through `RunDockerCommand()`, and any other `StartProcess` checks its exit code.
 
 ## Pipelines
