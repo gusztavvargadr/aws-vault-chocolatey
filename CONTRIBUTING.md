@@ -38,7 +38,7 @@ Each pull request runs `Package` in Continuous Delivery, and isn't done until it
 - The feed only gets the exact file a passing Continuous Delivery run built. Nothing rebuilds it at release.
 - Every `choco` command runs in the container.
 - A workflow has no build logic of its own. It calls a `build.cake` target or a script under `build/`.
-- A workflow runs its `run` steps in `pwsh`, set once under `defaults`, on every runner.
+- Every workflow runs on `windows-2022`, with its `run` steps in `pwsh`, set once under `defaults`.
 - The Chocolatey server and API key come from the environment.
 
 ## Conventions
