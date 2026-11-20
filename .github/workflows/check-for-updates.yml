@@ -45,24 +45,17 @@ jobs:
           
           Write-Host "Next version to package: $nextVersion"
 
-      - name: Update submodule to next version
-        if: steps.detect-version.outputs.next-version != ''
-        run: |
-          cd lib/ByteNess/aws-vault
-          git fetch --all --tags
-          git checkout v${{ steps.detect-version.outputs.next-version }}
-          cd ../../..
-
-      - name: Update package.json version
+      - name: Update source version
         id: update-version
         if: steps.detect-version.outputs.next-version != ''
         shell: pwsh
         run: |
-          $packageJsonPath = './build/chocolatey/package.json'
-          $packageJson = Get-Content -Raw $packageJsonPath | ConvertFrom-Json
-          "previous-version=$($packageJson.Version)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-          $packageJson.Version = '${{ steps.detect-version.outputs.next-version }}'
-          $packageJson | ConvertTo-Json -Depth 10 | Set-Content $packageJsonPath -Encoding utf8
+          $previousVersion = & ./build/Update-SourceVersion.ps1 `
+            -Version '${{ steps.detect-version.outputs.next-version }}' `
+            -PackageJsonPath ./build/chocolatey/package.json `
+            -SubmodulePath ./lib/ByteNess/aws-vault
+
+          "previous-version=$previousVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
       - name: Create Pull Request
         id: create-pr

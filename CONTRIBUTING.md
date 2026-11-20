@@ -23,7 +23,7 @@ dotnet cake [--target <target>]
 ## Checks
 
 - The version, the package contents, `build.cake`, or the `Dockerfile`: `Package`. For the contents, also read the generated `.nuspec` and `tools/VERIFICATION.txt` under `artifacts/`. For `build.cake`, run `--tree` first. For the `Dockerfile`, `Restore` rebuilds the image.
-- `New-ReleaseNotes.ps1`, `Get-NextVersion.ps1`, or the release template: run the script directly, and read what it wrote. `New-ReleaseNotes.ps1` needs `gh` signed in, or `GH_TOKEN`.
+- `New-ReleaseNotes.ps1`, `Get-NextVersion.ps1`, `Update-SourceVersion.ps1`, or the release template: run the script directly, and read what it wrote. `New-ReleaseNotes.ps1` needs `gh` signed in, or `GH_TOKEN`. `Update-SourceVersion.ps1` moves the submodule and `package.json`, so put both back afterwards.
 - A workflow: push the branch, and read the run.
 
 Each pull request runs `Package` in Continuous Delivery, and isn't done until it passes.
