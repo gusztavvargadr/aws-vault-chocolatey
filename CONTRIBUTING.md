@@ -4,13 +4,13 @@
 
 - Windows, with Docker switched to Windows containers.
 - The .NET SDK, to run [Cake](https://cakebuild.net).
-- PowerShell 7.
+- PowerShell 7, as `pwsh`. Run every command here in it, as the workflows do. Git Bash and Windows PowerShell 5.1 aren't supported; only the container runs Windows PowerShell.
 
 Elsewhere, `Restore` and every target after it can't run.
 
 ## Build
 
-```sh
+```powershell
 dotnet tool restore
 dotnet cake [--target <target>]
 ```
@@ -36,6 +36,7 @@ Each pull request runs `Package` in Continuous Delivery, and isn't done until it
 - The feed only gets the exact file a passing Continuous Delivery run built. Nothing rebuilds it at release.
 - Every `choco` command runs in the container.
 - A workflow has no build logic of its own. It calls a `build.cake` target or a script under `build/`.
+- A workflow runs its steps in `pwsh`, set once under `defaults`, on every runner.
 - The Chocolatey server and API key come from the environment.
 
 ## Conventions
