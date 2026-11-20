@@ -122,9 +122,8 @@ Task("Package")
     RunDockerCommand($"compose run --rm --entrypoint \"powershell -File ./build/chocolatey/package.install.ps1\" chocolatey {packageVersion}");
   });
 
-Task("Publish")
-  .Description("Push the package Package built to the configured Chocolatey server, without rebuilding it.")
-  .IsDependentOn("Restore")
+Task("PublishCheck")
+  .Description("Check that Publish has a Chocolatey server, an API key, and a package to push.")
   .Does(() => {
     if (string.IsNullOrEmpty(chocolateyServer)) {
       throw new Exception("CHOCOLATEY_SERVER is not set.");
@@ -137,7 +136,13 @@ Task("Publish")
     if (!FileExists(packagePath)) {
       throw new Exception($"Package not found: '{packagePath}'. Run the Package target, or download the Continuous Delivery artifact, first.");
     }
+  });
 
+Task("Publish")
+  .Description("Push the package Package built to the configured Chocolatey server, without rebuilding it.")
+  .IsDependentOn("PublishCheck")
+  .IsDependentOn("Restore")
+  .Does(() => {
     RunDockerCommand($"compose run --rm --entrypoint \"powershell -File ./build/chocolatey/package.push.ps1\" chocolatey {packageVersion}");
   });
 
