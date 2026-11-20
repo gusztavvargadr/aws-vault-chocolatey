@@ -44,6 +44,6 @@ Each pull request runs `Package` in Continuous Delivery, and isn't done until it
 
 ## Pipelines
 
-- Check for Updates runs daily. It opens a pull request that moves `lib/ByteNess/aws-vault` and `package.json` to the earliest upstream release not packaged yet, and only once the current version's release is published.
+- Check for Updates runs daily. It opens a pull request that moves `lib/ByteNess/aws-vault` and `package.json` to the earliest upstream release not packaged yet, and only once the current version's release is published. It opens it with the `BUMP_TOKEN` secret, because a pull request the workflow token opens starts no workflows, and Continuous Delivery has to run on it.
 - Merging that pull request runs Continuous Delivery on `main`, which creates the draft release.
 - Publishing the draft creates the `v*` tag, and Release pushes that Continuous Delivery run's package to the feed.
