@@ -9,6 +9,10 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+defaults:
+  run:
+    shell: pwsh
+
 permissions:
   contents: write
   actions: read
@@ -25,7 +29,6 @@ jobs:
 
       - name: Extract version from tag
         id: extract-version
-        shell: pwsh
         run: |
           $tag = '${{ github.ref }}'
           $version = $tag -replace '^refs/tags/v', ''
@@ -102,7 +105,6 @@ jobs:
 
       - name: Publish existing draft release
         if: steps.check-release.outputs.exists == 'true'
-        shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -112,7 +114,7 @@ jobs:
       - name: Skip if already published
         if: steps.check-release.outputs.exists == 'published'
         run: |
-          echo "Release v${{ steps.extract-version.outputs.version }} is already published, skipping"
+          Write-Host "Release v${{ steps.extract-version.outputs.version }} is already published, skipping"
 
       - name: Create GitHub Release (fallback)
         if: steps.check-release.outputs.exists == 'false'

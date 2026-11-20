@@ -11,6 +11,10 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+defaults:
+  run:
+    shell: pwsh
+
 permissions:
   contents: write
   pull-requests: read
@@ -41,7 +45,6 @@ jobs:
       - name: Read version from package.json
         if: github.ref == 'refs/heads/main'
         id: read-version
-        shell: pwsh
         run: |
           $packageJson = Get-Content ./build/chocolatey/package.json | ConvertFrom-Json
           $version = $packageJson.Version

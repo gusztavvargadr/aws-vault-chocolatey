@@ -9,6 +9,10 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+defaults:
+  run:
+    shell: pwsh
+
 permissions:
   contents: read
 
@@ -26,7 +30,6 @@ jobs:
 
       - name: Detect next missing version
         id: detect-version
-        shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -48,7 +51,6 @@ jobs:
       - name: Update source version
         id: update-version
         if: steps.detect-version.outputs.next-version != ''
-        shell: pwsh
         run: |
           $previousVersion = & ./build/Update-SourceVersion.ps1 `
             -Version '${{ steps.detect-version.outputs.next-version }}' `
