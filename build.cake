@@ -123,12 +123,19 @@ Task("Package")
   });
 
 Task("Publish")
-  .Description("Push the packed package to the configured Chocolatey server.")
-  .IsDependentOn("Package")
+  .Description("Push the package Package built to the configured Chocolatey server, without rebuilding it.")
+  .IsDependentOn("Restore")
   .Does(() => {
     if (string.IsNullOrEmpty(chocolateyServer)) {
-      Warning("Chocolatey server is not configured, skipping publish.");
-      return;
+      throw new Exception("CHOCOLATEY_SERVER is not set.");
+    }
+    if (string.IsNullOrEmpty(EnvironmentVariable("CHOCOLATEY_API_KEY", string.Empty))) {
+      throw new Exception("CHOCOLATEY_API_KEY is not set.");
+    }
+
+    var packagePath = $"./artifacts/chocolatey/packages/{packageName}.{packageVersion}.nupkg";
+    if (!FileExists(packagePath)) {
+      throw new Exception($"Package not found: '{packagePath}'. Run the Package target, or download the Continuous Delivery artifact, first.");
     }
 
     RunDockerCommand($"compose run --rm --entrypoint \"powershell -File ./build/chocolatey/package.push.ps1\" chocolatey {packageVersion}");

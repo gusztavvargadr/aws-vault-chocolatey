@@ -17,12 +17,13 @@ dotnet cake [--target <target>]
 
 - `--description` lists the targets, and `--tree` shows what each one runs first.
 - `Package`, the default, downloads the binary, checks the version it reports against the upstream version, packs it, and installs and uninstalls it in a clean container.
+- `Publish` pushes the package `Package` left under `artifacts/`, without rebuilding it, and fails when there is none or `CHOCOLATEY_SERVER` or `CHOCOLATEY_API_KEY` isn't set.
 - `--source-version` packages another upstream release than the one in `build/chocolatey/package.json`, and `--package-version` sets the version the package is published under.
 
 ## Checks
 
 - The version, the package contents, `build.cake`, or the `Dockerfile`: `Package`. For the contents, also read the generated `.nuspec` and `tools/VERIFICATION.txt` under `artifacts/`. For `build.cake`, run `--tree` first. For the `Dockerfile`, `Restore` rebuilds the image.
-- `New-ReleaseNotes.ps1`, `Get-NextVersion.ps1`, or the release template: run the script directly, and read what it wrote. `New-ReleaseNotes.ps1` needs `gh` signed in, or `GH_TOKEN`.
+- `New-ReleaseNotes.ps1`, `Get-NextVersion.ps1`, `Update-SourceVersion.ps1`, or the release template: run the script directly, and read what it wrote. `New-ReleaseNotes.ps1` needs `gh` signed in, or `GH_TOKEN`. `Update-SourceVersion.ps1` moves the submodule and `package.json`, so put both back afterwards.
 - A workflow: push the branch, and read the run.
 
 Each pull request runs `Package` in Continuous Delivery, and isn't done until it passes.

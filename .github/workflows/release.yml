@@ -35,9 +35,6 @@ jobs:
       - name: Init .NET
         run: dotnet tool restore
 
-      - name: Restore Docker image
-        run: dotnet cake --target Restore
-
       - name: Find CD workflow run
         id: find-cd
         uses: actions/github-script@v8
@@ -68,20 +65,11 @@ jobs:
           repository: ${{ github.repository }}
           path: artifacts/chocolatey
 
-      - name: Validate package artifact
-        shell: pwsh
-        run: |
-          $version = '${{ steps.extract-version.outputs.version }}'
-          $packagePath = "artifacts/chocolatey/packages/aws-vault.$version.nupkg"
-          if (-not (Test-Path $packagePath)) {
-            throw "Expected package not found: $packagePath"
-          }
-
       - name: Publish Chocolatey package
         env:
           CHOCOLATEY_SERVER: ${{ vars.CHOCOLATEY_SERVER }}
           CHOCOLATEY_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }}
-        run: docker compose run --rm --entrypoint "powershell -File ./build/chocolatey/package.push.ps1" chocolatey ${{ steps.extract-version.outputs.version }}
+        run: dotnet cake --target Publish --package-version ${{ steps.extract-version.outputs.version }}
 
       - name: Check for existing draft release
         id: check-release
