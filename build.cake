@@ -129,6 +129,9 @@ Task("Publish")
     if (string.IsNullOrEmpty(chocolateyServer)) {
       throw new Exception("CHOCOLATEY_SERVER is not set.");
     }
+    if (string.IsNullOrEmpty(EnvironmentVariable("CHOCOLATEY_API_KEY", string.Empty))) {
+      throw new Exception("CHOCOLATEY_API_KEY is not set.");
+    }
 
     var packagePath = $"./artifacts/chocolatey/packages/{packageName}.{packageVersion}.nupkg";
     if (!FileExists(packagePath)) {

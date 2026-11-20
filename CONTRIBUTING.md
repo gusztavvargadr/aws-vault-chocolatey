@@ -17,7 +17,7 @@ dotnet cake [--target <target>]
 
 - `--description` lists the targets, and `--tree` shows what each one runs first.
 - `Package`, the default, downloads the binary, checks the version it reports against the upstream version, packs it, and installs and uninstalls it in a clean container.
-- `Publish` pushes the package `Package` left under `artifacts/`, without rebuilding it, and fails when there is none or `CHOCOLATEY_SERVER` isn't set.
+- `Publish` pushes the package `Package` left under `artifacts/`, without rebuilding it, and fails when there is none or `CHOCOLATEY_SERVER` or `CHOCOLATEY_API_KEY` isn't set.
 - `--source-version` packages another upstream release than the one in `build/chocolatey/package.json`, and `--package-version` sets the version the package is published under.
 
 ## Checks

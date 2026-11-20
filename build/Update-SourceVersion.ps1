@@ -1,4 +1,5 @@
 #!/usr/bin/env pwsh
+#Requires -Version 7.0
 <#
 .SYNOPSIS
 Moves the packaged upstream version on to another release.
@@ -37,6 +38,10 @@ $ErrorActionPreference = 'Stop'
 
 $tag = "v$Version"
 
+# Read package.json before moving the submodule, so a bad path leaves nothing half done.
+$packageJson = Get-Content -Raw $PackageJsonPath | ConvertFrom-Json
+$previousVersion = $packageJson.Version
+
 Write-Host "Fetching tags in $SubmodulePath..."
 git -C $SubmodulePath fetch --all --tags 2>&1 | Out-Host
 if ($LASTEXITCODE -ne 0) {
@@ -49,8 +54,6 @@ if ($LASTEXITCODE -ne 0) {
     throw "Checking out '$tag' in '$SubmodulePath' failed with exit code $LASTEXITCODE."
 }
 
-$packageJson = Get-Content -Raw $PackageJsonPath | ConvertFrom-Json
-$previousVersion = $packageJson.Version
 $packageJson.Version = $Version
 $packageJson | ConvertTo-Json -Depth 10 | Set-Content $PackageJsonPath -Encoding utf8
 Write-Host "Moved $PackageJsonPath from $previousVersion to $Version"
