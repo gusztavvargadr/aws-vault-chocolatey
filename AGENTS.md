@@ -1,19 +1,17 @@
 # Agents
 
-This file lists every guide an agent working in this repository reads, and when to read it.
+Read [README.md](README.md) and [CONTRIBUTING.md](CONTRIBUTING.md) before changing anything.
 
-## Setup
+## Ask before
 
-This repository is set up with [gusztavvargadr/skills](https://github.com/gusztavvargadr/skills) at commit `efe121af650fc8b5b0095edf48ef5764a3be03b3`, installed at user level, so the guides the setup installs are read through `guides-g`.
+- `dotnet cake --target Clean`, because it prunes the machine's stopped containers, dangling images, and whole build cache, not only this repository's.
+- `dotnet cake --target Publish`, or publishing a draft release, because both push to the public Chocolatey feed, which can't be undone. Publishing a draft is the maintainer's step.
 
-## Guides
+Where Windows containers can't run, say which checks couldn't run, and don't report a pass.
 
-| Guide | When to read it |
-| --- | --- |
-| [Product](docs/product.md) | Before any change, to judge whether it belongs here. |
-| [Architecture](docs/architecture.md) | Before changing the shape of the system, and when checking a change against its invariants. |
-| [Engineering](docs/engineering.md) | Before building, testing, or checking a change. |
-| [Usage](docs/usage.md) | Before installing or using what the repository produces, or changing how it is used. |
-| The delivery guide `guides-g` lists | Before taking part in a delivery. |
-| The backlog guide `guides-g` lists | Before capturing, organizing, or promoting an idea. |
-| The writing guide `guides-g` lists | Before writing anything in this repository, or on its issues and pull requests. |
+## Conventions
+
+- Specs and plans go on the issue or the pull request, not in `docs/superpowers`.
+- Review findings go on the pull request, as review comments on the lines they concern. Each thread gets a reply saying what was done: fixed (with the commit), moved to an issue (with the link), or left as is (with why). Then the thread is resolved.
+- Findings outside the pull request's scope become issues.
+- CI is the evidence.
