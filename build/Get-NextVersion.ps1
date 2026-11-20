@@ -1,5 +1,5 @@
-#!/usr/bin/env pwsh
 #Requires -Version 7.0
+
 <#
 .SYNOPSIS
 Detects the next missing upstream version that needs to be packaged.

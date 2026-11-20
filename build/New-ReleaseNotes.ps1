@@ -1,5 +1,5 @@
-#!/usr/bin/env pwsh
 #Requires -Version 7.0
+
 <#
 .SYNOPSIS
 Generates the release notes for a version from a template and GitHub's generated release notes.
